@@ -709,6 +709,20 @@ class WP_Object_Cache {
 	public $no_mc_groups = array( 'comment', 'counts' );
 
 	/**
+	 * Prefix used for global groups.
+	 *
+	 * @var string
+	 */
+	private $_global_prefix = '';
+
+	/**
+	 * Prefix used for non-global groups.
+	 *
+	 * @var string
+	 */
+	private $_blog_prefix = '';
+
+	/**
 	 * Instantiate the Memcached class.
 	 *
 	 * Instantiates the Memcached class and returns adds the servers specified
@@ -719,7 +733,7 @@ class WP_Object_Cache {
 	 * @param null  $persistent_id  To create an instance that persists between requests, use persistent_id to specify a unique ID for the instance.
 	 */
 	public function __construct( $persistent_id = NULL ) {
-		global $memcached_servers, $blog_id;
+		global $memcached_servers, $blog_id, $table_prefix;
 
 		if ( is_null( $persistent_id ) || ! is_string( $persistent_id ) )
 			$this->m = new Memcached();
@@ -740,10 +754,11 @@ class WP_Object_Cache {
 		if ( ! defined( 'WP_CACHE_KEY_SALT' ) )
 			define( 'WP_CACHE_KEY_SALT', '' );
 
-		global $blog_id;
-
-		// Rather than grab the $blog_id everytime a key is generated, just use it in the global prefix.
-		$this->setOption( Memcached::OPT_PREFIX_KEY, preg_replace('/\s+/', '', WP_CACHE_KEY_SALT . $blog_id ) );
+		// Assign global and blog prefixes for use with keys
+		if ( function_exists( 'is_multisite' ) ) {
+			$this->_global_prefix = ( is_multisite() || defined( 'CUSTOM_USER_TABLE' ) && defined( 'CUSTOM_USER_META_TABLE' ) ) ? '' : $table_prefix;
+			$this->_blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
+		}
 	}
 
 	/**
@@ -1785,7 +1800,7 @@ class WP_Object_Cache {
 	/**
 	 * Builds a key for the cached object using the blog_id, key, and group values.
 	 *
-	 * @author  Ryan Boren   This function comes straight from the original WP Memcached Object cache
+	 * @author  Ryan Boren   This function is inspired by the original WP Memcached Object cache.
 	 * @link    http://wordpress.org/extend/plugins/memcached/
 	 *
 	 * @param string    $key    The key under which to store the value.
@@ -1793,21 +1808,15 @@ class WP_Object_Cache {
 	 * @return string
 	 */
 	private function _buildKey( $key, $group = 'default' ) {
-		/*
-		global $blog_id;
-
-		if ( false !== array_search( $group, $this->global_groups ) )
-			$prefix = $blog_id;
-		else
-			$prefix = $blog_id . ':';
-
-		return preg_replace( '/\s+/', '', "$prefix$group:$key" );
-		*/
-
 		if ( empty( $group ) )
 			$group = 'default';
 
-		return preg_replace( '/\s+/', '', "$group:$key" );
+		if ( false !== array_search( $group, $this->global_groups ) )
+			$prefix = $this->_global_prefix;
+		else
+			$prefix = $this->_blog_prefix;
+
+		return preg_replace( '/\s+/', '', WP_CACHE_KEY_SALT . "$prefix$group:$key" );
 	}
 
 	/**
