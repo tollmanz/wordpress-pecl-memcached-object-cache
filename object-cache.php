@@ -266,7 +266,7 @@ function wp_cache_fetch_all() {
  */
 function wp_cache_flush( $delay = 0 ) {
 	global $wp_object_cache;
-	return $wp_object_cache->fetch( $delay );
+	return $wp_object_cache->flush( $delay );
 }
 
 /**
