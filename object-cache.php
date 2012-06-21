@@ -688,6 +688,13 @@ class WP_Object_Cache {
 	public $m;
 
 	/**
+	 * Hold the Memcached server details.
+	 *
+	 * @var array
+	 */
+	public $servers;
+
+	/**
 	 * Holds the non-Memcached objects.
 	 *
 	 * @var array
@@ -741,11 +748,11 @@ class WP_Object_Cache {
 			$this->m = new Memcached( $persistent_id );
 
 		if ( isset( $memcached_servers ) )
-			$servers = $memcached_servers;
+			$this->servers = $memcached_servers;
 		else
-			$servers = array( array( '127.0.0.1', 11211 ) );
+			$this->servers = array( array( '127.0.0.1', 11211 ) );
 
-		$this->addServers( $servers );
+		$this->addServers( $this->servers );
 
 		/**
 		 * This approach is borrowed from Sivel and Boren. Use the salt for easy cache invalidation and for
@@ -816,7 +823,7 @@ class WP_Object_Cache {
 	 * @param int       $expiration     The expiration time, defaults to 0.
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
-	public function addByKey( $server_key, $key, $value, $group = 'default', $expiration ) {
+	public function addByKey( $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
