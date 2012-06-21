@@ -692,7 +692,7 @@ class WP_Object_Cache {
 	 *
 	 * @var array
 	 */
-	private $_cache = array();
+	public $cache = array();
 
 	/**
 	 * List of global groups.
@@ -713,14 +713,14 @@ class WP_Object_Cache {
 	 *
 	 * @var string
 	 */
-	private $_global_prefix = '';
+	public $global_prefix = '';
 
 	/**
 	 * Prefix used for non-global groups.
 	 *
 	 * @var string
 	 */
-	private $_blog_prefix = '';
+	public $blog_prefix = '';
 
 	/**
 	 * Instantiate the Memcached class.
@@ -756,8 +756,8 @@ class WP_Object_Cache {
 
 		// Assign global and blog prefixes for use with keys
 		if ( function_exists( 'is_multisite' ) ) {
-			$this->_global_prefix = ( is_multisite() || defined( 'CUSTOM_USER_TABLE' ) && defined( 'CUSTOM_USER_META_TABLE' ) ) ? '' : $table_prefix;
-			$this->_blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
+			$this->global_prefix = ( is_multisite() || defined( 'CUSTOM_USER_TABLE' ) && defined( 'CUSTOM_USER_META_TABLE' ) ) ? '' : $table_prefix;
+			$this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
 		}
 	}
 
@@ -775,17 +775,17 @@ class WP_Object_Cache {
 	 * @param int       $expiration The expiration time, defaults to 0.
 	 * @return bool                 Returns TRUE on success or FALSE on failure.
 	 */
-	public function add( $key, $value, $group = 'default', $expiration ) {
-		$derived_key = $this->_buildKey( $key, $group );
+	public function add( $key, $value, $group = 'default', $expiration = 0 ) {
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Add does not set the value if the key exists; mimic that here
-			if ( isset( $this->_cache[$derived_key] ) )
+			if ( isset( $this->cache[$derived_key] ) )
 				return false;
 
-			$this->_cache[$derived_key] = $value;
+			$this->cache[$derived_key] = $value;
 			return true;
 		}
 
@@ -794,7 +794,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$derived_key] = $value;
+			$this->cache[$derived_key] = $value;
 
 		return $result;
 	}
@@ -817,16 +817,16 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function addByKey( $server_key, $key, $value, $group = 'default', $expiration ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Add does not set the value if the key exists; mimic that here
-			if ( isset( $this->_cache[$server_key][$derived_key] ) )
+			if ( isset( $this->cache[$server_key][$derived_key] ) )
 				return false;
 
-			$this->_cache[$server_key][$derived_key] = $value;
+			$this->cache[$server_key][$derived_key] = $value;
 			return true;
 		}
 
@@ -835,7 +835,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$server_key][$derived_key] = $value;
+			$this->cache[$server_key][$derived_key] = $value;
 
 		return $result;
 	}
@@ -887,11 +887,11 @@ class WP_Object_Cache {
 	 * @return bool             Returns TRUE on success or FALSE on failure.
 	 */
 	public function append( $key, $value, $group = 'default' ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, append to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->_cache[$derived_key] = $this->_cache[$derived_key] . (string) $value;
+			$this->cache[$derived_key] = $this->cache[$derived_key] . (string) $value;
 			return true;
 		}
 
@@ -900,7 +900,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$derived_key] = $result;
+			$this->cache[$derived_key] = $result;
 
 		return $result;
 	}
@@ -917,11 +917,11 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function appendByKey( $server_key, $key, $value, $group = 'default' ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, append to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->_cache[$server_key][$derived_key] = $this->_cache[$server_key][$derived_key] . (string) $value;
+			$this->cache[$server_key][$derived_key] = $this->cache[$server_key][$derived_key] . (string) $value;
 			return true;
 		}
 
@@ -930,7 +930,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$server_key][$derived_key] = $result;
+			$this->cache[$server_key][$derived_key] = $result;
 
 		return $result;
 	}
@@ -951,7 +951,7 @@ class WP_Object_Cache {
 	 * @return bool                 Returns TRUE on success or FALSE on failure.
 	 */
 	public function cas( $cas_token, $key, $value, $group = 'default', $expiration = 0 ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		/**
 		 * If group is a non-Memcached group, save to runtime cache, not Memcached. Note
@@ -959,7 +959,7 @@ class WP_Object_Cache {
 		 * operation is treated as a normal "add" for no_mc_groups.
 		 */
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->_cache[$derived_key] = $value;
+			$this->cache[$derived_key] = $value;
 			return true;
 		}
 
@@ -968,7 +968,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if cas was successful
 		if ( false !== $result )
-			$this->_cache[$derived_key] = $value;
+			$this->cache[$derived_key] = $value;
 
 		return $result;
 	}
@@ -990,7 +990,7 @@ class WP_Object_Cache {
 	 * @return bool                 Returns TRUE on success or FALSE on failure.
 	 */
 	public function casByKey( $cas_token, $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		/**
 		 * If group is a non-Memcached group, save to runtime cache, not Memcached. Note
@@ -998,7 +998,7 @@ class WP_Object_Cache {
 		 * operation is treated as a normal "addByKey" for no_mc_groups.
 		 */
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->_cache[$server_key][$derived_key] = $value;
+			$this->cache[$server_key][$derived_key] = $value;
 			return true;
 		}
 
@@ -1007,7 +1007,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if cas was successful
 		if ( false !== $result )
-			$this->_cache[$server_key][$derived_key] = $value;
+			$this->cache[$server_key][$derived_key] = $value;
 
 		return $result;
 	}
@@ -1023,25 +1023,25 @@ class WP_Object_Cache {
 	 * @return int|bool         Returns item's new value on success or FALSE on failure.
 	 */
 	public function decrement( $key, $offset = 1, $group = 'default' ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// Decrement values in no_mc_groups
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Only decrement if the key already exists
-			if ( isset( $this->_cache[$derived_key] ) ) {
+			if ( isset( $this->cache[$derived_key] ) ) {
 
 				// If numeric, subtract; otherwise, consider it 0 and do nothing
-				if ( is_numeric( $this->_cache[$derived_key] ) )
-					$this->_cache[$derived_key] -= (int) $offset;
+				if ( is_numeric( $this->cache[$derived_key] ) )
+					$this->cache[$derived_key] -= (int) $offset;
 				else
-					$this->_cache[$derived_key] = 0;
+					$this->cache[$derived_key] = 0;
 
 				// Returned value cannot be less than 0
-				if ( $this->_cache[$derived_key] < 0 )
-					$this->_cache[$derived_key] = 0;
+				if ( $this->cache[$derived_key] < 0 )
+					$this->cache[$derived_key] = 0;
 
-				return $this->_cache[$derived_key];
+				return $this->cache[$derived_key];
 			} else {
 				return false;
 			}
@@ -1066,18 +1066,18 @@ class WP_Object_Cache {
 	 * @return bool             Returns TRUE on success or FALSE on failure.
 	 */
 	public function delete( $key, $group = 'default', $time = 0 ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// Remove from no_mc_groups array
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			unset( $this->_cache[$derived_key] );
+			unset( $this->cache[$derived_key] );
 			return true;
 		}
 
 		$result = $this->m->delete( $derived_key, $time );
 
 		if ( false !== $result )
-			unset( $this->_cache[$derived_key] );
+			unset( $this->cache[$derived_key] );
 
 		return $result;
 	}
@@ -1099,18 +1099,18 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function deleteByKey( $server_key, $key, $group = 'default', $time = 0 ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// Remove from no_mc_groups array
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			unset( $this->_cache[$server_key][$derived_key] );
+			unset( $this->cache[$server_key][$derived_key] );
 			return true;
 		}
 
 		$result = $this->m->deleteByKey( $server_key, $derived_key, $time );
 
 		if ( false !== $result )
-			unset( $this->_cache[$server_key][$derived_key] );
+			unset( $this->cache[$server_key][$derived_key] );
 
 		return $result;
 	}
@@ -1150,7 +1150,7 @@ class WP_Object_Cache {
 
 		// Only reset the runtime cache if memcached was properly flushed
 		if ( false !== $result )
-			$this->_cache = array();
+			$this->cache = array();
 
 		return $result;
 	}
@@ -1172,22 +1172,21 @@ class WP_Object_Cache {
 	 * @return bool|mixed               Cached object value.
 	 */
 	public function get( $key, $group = 'default', $cache_cb = NULL, &$cas_token = NULL ) {
-		$derived_key = $this->_buildKey( $key, $group );
-
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
 		if ( ! is_null( $cache_cb ) || ! is_null( $cas_token ) ) {
 			$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 		} else {
-			if ( isset( $this->_cache[$derived_key] ) )
-				$value = $this->_cache[$derived_key];
+			if ( isset( $this->cache[$derived_key] ) )
+				$value = $this->cache[$derived_key];
 			elseif ( in_array( $group, $this->no_mc_groups ) )
 				$value = false;
 			else
 				$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 		}
 
-		$this->_cache[$derived_key] = $value;
+		$this->cache[$derived_key] = $value;
 
 		return $value;
 	}
@@ -1210,21 +1209,21 @@ class WP_Object_Cache {
 	 * @return bool|mixed               Cached object value.
 	 */
 	public function getByKey( $server_key, $key, $group = 'default', $cache_cb = NULL, $cas_token = NULL ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
 		if ( ! is_null( $cache_cb ) || ! is_null( $cas_token ) ) {
 			$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
 		} else {
-			if ( isset( $this->_cache[$server_key][$derived_key] ) )
-				$value = $this->_cache[$server_key][$derived_key];
+			if ( isset( $this->cache[$server_key][$derived_key] ) )
+				$value = $this->cache[$server_key][$derived_key];
 			elseif ( in_array( $group, $this->no_mc_groups ) )
 				$value = false;
 			else
 				$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
 		}
 
-		$this->_cache[$server_key][$derived_key] = $value;
+		$this->cache[$server_key][$derived_key] = $value;
 
 		return $value;
 	}
@@ -1241,7 +1240,7 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function getDelayed( $keys, $groups = 'default', $with_cas = false, $value_cb = NULL ) {
-		$derived_keys = $this->_buildKeys( $keys, $groups );
+		$derived_keys = $this->buildKeys( $keys, $groups );
 		return $this->m->getDelayed( $derived_keys, $with_cas, $value_cb );
 	}
 
@@ -1258,7 +1257,7 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function getDelayedByKey( $server_key, $keys, $groups = 'default', $with_cas = false, $value_cb = NULL ) {
-		$derived_keys = $this->_buildKeys( $keys, $groups );
+		$derived_keys = $this->buildKeys( $keys, $groups );
 		return $this->m->getDelayedByKey( $server_key, $derived_keys, $with_cas, $value_cb );
 	}
 
@@ -1276,7 +1275,7 @@ class WP_Object_Cache {
 	 * @return bool|array               Returns the array of found items or FALSE on failure.
 	 */
 	public function getMulti( $keys, $groups = 'default', $cas_tokens = NULL, $flags = 0 ) {
-		$derived_keys = $this->_buildKeys( $keys, $groups );
+		$derived_keys = $this->buildKeys( $keys, $groups );
 
 		// If either $cas_tokens, or $flags is set, must hit Memcached and bypass runtime cache
 		if ( ! is_null( $cas_tokens ) || $flags > 0 ) {
@@ -1287,8 +1286,8 @@ class WP_Object_Cache {
 
 			// Pull out values from runtime cache, or mark for retrieval
 			foreach ( $derived_keys as $key ) {
-				if ( isset( $this->_cache[$key] ) )
-					$values[$key] = $this->_cache[$key];
+				if ( isset( $this->cache[$key] ) )
+					$values[$key] = $this->cache[$key];
 				else
 					$new_to_get[$key] = $key;
 			}
@@ -1316,7 +1315,7 @@ class WP_Object_Cache {
 		}
 
 		// Add the values to the runtime cache
-		$this->_cache = array_merge( $this->_cache, $values );
+		$this->cache = array_merge( $this->cache, $values );
 
 		return $values;
 	}
@@ -1336,7 +1335,7 @@ class WP_Object_Cache {
 	 * @return bool|array               Returns the array of found items or FALSE on failure.
 	 */
 	public function getMultiByKey( $server_key, $keys, $groups = 'default', $cas_tokens = NULL, $flags = 0 ) {
-		$derived_keys = $this->_buildKeys( $keys, $groups );
+		$derived_keys = $this->buildKeys( $keys, $groups );
 
 		// If either $cas_tokens, or $flags is set, must hit Memcached and bypass runtime cache
 		if ( ! is_null( $cas_tokens ) || $flags > 0 ) {
@@ -1347,8 +1346,8 @@ class WP_Object_Cache {
 
 			// Pull out values from runtime cache, or mark for retrieval
 			foreach ( $derived_keys as $key ) {
-				if ( isset( $this->_cache[$server_key][$key] ) )
-					$values[$key] = $this->_cache[$server_key][$key];
+				if ( isset( $this->cache[$server_key][$key] ) )
+					$values[$key] = $this->cache[$server_key][$key];
 				else
 					$new_to_get[$key] = $key;
 			}
@@ -1376,7 +1375,7 @@ class WP_Object_Cache {
 		}
 
 		// Add the values to the runtime cache
-		$this->_cache = array_merge( $this->_cache[$server_key], $values );
+		$this->cache = array_merge( $this->cache[$server_key], $values );
 
 		return $values;
 	}
@@ -1471,25 +1470,25 @@ class WP_Object_Cache {
 	 * @return int|bool         Returns item's new value on success or FALSE on failure.
 	 */
 	public function increment( $key, $offset = 1, $group = 'default' ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// Increment values in no_mc_groups
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Only increment if the key already exists
-			if ( isset( $this->_cache[$derived_key] ) ) {
+			if ( isset( $this->cache[$derived_key] ) ) {
 
 				// If numeric, add; otherwise, consider it 0 and do nothing
-				if ( is_numeric( $this->_cache[$derived_key] ) )
-					$this->_cache[$derived_key] += (int) $offset;
+				if ( is_numeric( $this->cache[$derived_key] ) )
+					$this->cache[$derived_key] += (int) $offset;
 				else
-					$this->_cache[$derived_key] = 0;
+					$this->cache[$derived_key] = 0;
 
 				// Returned value cannot be less than 0
-				if ( $this->_cache[$derived_key] < 0 )
-					$this->_cache[$derived_key] = 0;
+				if ( $this->cache[$derived_key] < 0 )
+					$this->cache[$derived_key] = 0;
 
-				return $this->_cache[$derived_key];
+				return $this->cache[$derived_key];
 			} else {
 				return false;
 			}
@@ -1509,11 +1508,11 @@ class WP_Object_Cache {
 	 * @return bool             Returns TRUE on success or FALSE on failure.
 	 */
 	public function prepend( $key, $value, $group = 'default' ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, prepend to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->_cache[$derived_key] = (string) $value . $this->_cache[$derived_key];
+			$this->cache[$derived_key] = (string) $value . $this->cache[$derived_key];
 			return true;
 		}
 
@@ -1522,7 +1521,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$derived_key] = $result;
+			$this->cache[$derived_key] = $result;
 
 		return $result;
 	}
@@ -1539,11 +1538,11 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function prependByKey( $server_key, $key, $value, $group = 'default' ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, prepend to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->_cache[$server_key][$derived_key] = (string) $value . $this->_cache[$server_key][$derived_key];
+			$this->cache[$server_key][$derived_key] = (string) $value . $this->cache[$server_key][$derived_key];
 			return true;
 		}
 
@@ -1552,7 +1551,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$server_key][$derived_key] = $result;
+			$this->cache[$server_key][$derived_key] = $result;
 
 		return $result;
 	}
@@ -1572,16 +1571,16 @@ class WP_Object_Cache {
 	 * @return bool                 Returns TRUE on success or FALSE on failure.
 	 */
 	public function replace( $key, $value, $group = 'default', $expiration = 0 ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Replace won't save unless the key already exists; mimic this behavior here
-			if ( ! isset( $this->_cache[$derived_key] ) )
+			if ( ! isset( $this->cache[$derived_key] ) )
 				return false;
 
-			$this->_cache[$derived_key] = $value;
+			$this->cache[$derived_key] = $value;
 			return true;
 		}
 
@@ -1590,7 +1589,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$derived_key] = $value;
+			$this->cache[$derived_key] = $value;
 
 		return $result;
 	}
@@ -1611,16 +1610,16 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function replaceByKey( $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Replace won't save unless the key already exists; mimic this behavior here
-			if ( ! isset( $this->_cache[$server_key][$derived_key] ) )
+			if ( ! isset( $this->cache[$server_key][$derived_key] ) )
 				return false;
 
-			$this->_cache[$server_key][$derived_key] = $value;
+			$this->cache[$server_key][$derived_key] = $value;
 			return true;
 		}
 
@@ -1629,7 +1628,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$server_key][$derived_key] = $value;
+			$this->cache[$server_key][$derived_key] = $value;
 
 		return $result;
 	}
@@ -1648,11 +1647,11 @@ class WP_Object_Cache {
 	 * @return bool                 Returns TRUE on success or FALSE on failure.
 	 */
 	public function set( $key, $value, $group = 'default', $expiration = 0 ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->_cache[$derived_key] = $value;
+			$this->cache[$derived_key] = $value;
 			return true;
 		}
 
@@ -1661,7 +1660,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$derived_key] = $value;
+			$this->cache[$derived_key] = $value;
 
 		return $result;
 	}
@@ -1681,11 +1680,11 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function setByKey( $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
-		$derived_key = $this->_buildKey( $key, $group );
+		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->_cache[$server_key][$derived_key] = $value;
+			$this->cache[$server_key][$derived_key] = $value;
 			return true;
 		}
 
@@ -1694,7 +1693,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$server_key][$derived_key] = $value;
+			$this->cache[$server_key][$derived_key] = $value;
 
 		return $result;
 	}
@@ -1715,7 +1714,7 @@ class WP_Object_Cache {
 	 */
 	public function setMulti( array $items, $groups = 'default', $expiration = 0 ) {
 		// Build final keys and replace $items keys with the new keys
-		$derived_keys = $this->_buildKeys( array_keys( $items ), $groups );
+		$derived_keys = $this->buildKeys( array_keys( $items ), $groups );
 		$derived_items = array_combine( $derived_keys, $items );
 
 		// Do not add to memcached if in no_mc_groups
@@ -1726,7 +1725,7 @@ class WP_Object_Cache {
 
 			// If group is a non-Memcached group, save to runtime cache, not Memcached
 			if ( in_array( $key_pieces[1], $this->no_mc_groups ) ) {
-				$this->_cache[$key] = $value;
+				$this->cache[$key] = $value;
 				unset( $derived_items[$key] );
 			}
 		}
@@ -1736,7 +1735,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache = array_merge( $this->_cache, $derived_items );
+			$this->cache = array_merge( $this->cache, $derived_items );
 
 		return $result;
 	}
@@ -1758,7 +1757,7 @@ class WP_Object_Cache {
 	 */
 	public function setMultiByKey( $server_key, $items, $groups = 'default', $expiration = 0 ) {
 		// Build final keys and replace $items keys with the new keys
-		$derived_keys = $this->_buildKeys( array_keys( $items ), $groups );
+		$derived_keys = $this->buildKeys( array_keys( $items ), $groups );
 		$derived_items = array_combine( $derived_keys, $items );
 
 		// Do not add to memcached if in no_mc_groups
@@ -1769,7 +1768,7 @@ class WP_Object_Cache {
 
 			// If group is a non-Memcached group, save to runtime cache, not Memcached
 			if ( in_array( $key_pieces[1], $this->no_mc_groups ) ) {
-				$this->_cache[$server_key][$key] = $value;
+				$this->cache[$server_key][$key] = $value;
 				unset( $derived_items[$key] );
 			}
 		}
@@ -1779,7 +1778,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->_cache[$server_key] = array_merge( $this->_cache[$server_key], $derived_items );
+			$this->cache[$server_key] = array_merge( $this->cache[$server_key], $derived_items );
 
 		return $result;
 	}
@@ -1807,14 +1806,14 @@ class WP_Object_Cache {
 	 * @param string    $group  The group value appended to the $key.
 	 * @return string
 	 */
-	private function _buildKey( $key, $group = 'default' ) {
+	public function buildKey( $key, $group = 'default' ) {
 		if ( empty( $group ) )
 			$group = 'default';
 
 		if ( false !== array_search( $group, $this->global_groups ) )
-			$prefix = $this->_global_prefix;
+			$prefix = $this->global_prefix;
 		else
-			$prefix = $this->_blog_prefix;
+			$prefix = $this->blog_prefix;
 
 		return preg_replace( '/\s+/', '', WP_CACHE_KEY_SALT . "$prefix$group:$key" );
 	}
@@ -1835,7 +1834,7 @@ class WP_Object_Cache {
 	 * @param string|array  $groups Group(s) to merge with key(s).
 	 * @return array                Array that combines keys and groups into a single set of memcached keys.
 	 */
-	private function _buildKeys( $keys, $groups = 'default' ) {
+	public function buildKeys( $keys, $groups = 'default' ) {
 		$derived_keys = array();
 
 		// If strings sent, convert to arrays for proper handling
@@ -1848,18 +1847,18 @@ class WP_Object_Cache {
 		// If we have equal numbers of keys and groups, merge $keys[n] and $group[n]
 		if ( count( $keys ) == count( $groups ) ) {
 			for ( $i = 0; $i < count( $keys ); $i++ ) {
-				$derived_keys[] = $this->_buildKey( $keys[$i], $groups[$i] );
+				$derived_keys[] = $this->buildKey( $keys[$i], $groups[$i] );
 			}
 
 		// If more keys are received than groups, merge $keys[n] and $group[n] until no more group are left; remaining groups are 'default'
 		} elseif ( count( $keys ) > count( $groups ) ) {
 			for ( $i = 0; $i < count( $keys ); $i++ ) {
 				if ( isset( $groups[$i] ) )
-					$derived_keys[] = $this->_buildKey( $keys[$i], $groups[$i] );
+					$derived_keys[] = $this->buildKey( $keys[$i], $groups[$i] );
 				elseif ( count( $groups ) == 1 )
-					$derived_keys[] = $this->_buildKey( $keys[$i], $groups[0] );
+					$derived_keys[] = $this->buildKey( $keys[$i], $groups[0] );
 				else
-					$derived_keys[] = $this->_buildKey( $keys[$i], 'default' );
+					$derived_keys[] = $this->buildKey( $keys[$i], 'default' );
 			}
 		}
 
@@ -1892,11 +1891,16 @@ class WP_Object_Cache {
 	 * @param   array   $groups Array of groups.
 	 * @return  void
 	 */
-	function add_non_persistent_groups( $groups ) {
+	public function add_non_persistent_groups( $groups ) {
 		if ( ! is_array( $groups ) )
 			$groups = (array) $groups;
 
 		$this->no_mc_groups = array_merge( $this->no_mc_groups, $groups );
 		$this->no_mc_groups = array_unique( $this->no_mc_groups );
+	}
+
+	public function get_from_runtime_cache( $key, $group ) {
+		$derived_key = $this->buildKey( $key, $group );
+		return $this->cache[$derived_key];
 	}
 }
