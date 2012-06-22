@@ -860,7 +860,7 @@ class WP_Object_Cache {
 	public function addServer( $host, $port, $weight = 0 ) {
 		$host = is_string( $host ) ? $host : '127.0.0.1';
 		$port = is_numeric( $port ) && $port > 0 ? $port : 11211;
-		$weight = is_numeric( $weight ) && $weight > 0 ? $weight : 0;
+		$weight = is_numeric( $weight ) && $weight > 0 ? $weight : 1;
 
 		return $this->m->addServer( $host, $port, $weight );
 	}
