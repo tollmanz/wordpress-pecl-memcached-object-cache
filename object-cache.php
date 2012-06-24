@@ -1531,6 +1531,9 @@ class WP_Object_Cache {
 	 * @return bool             Returns TRUE on success or FALSE on failure.
 	 */
 	public function prepend( $key, $value, $group = 'default' ) {
+		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) )
+			return false;
+
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, prepend to runtime cache value, not Memcached
@@ -1544,7 +1547,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->cache[$derived_key] = $result;
+			$this->cache[$derived_key] = (string) $value . $this->cache[$derived_key];
 
 		return $result;
 	}
@@ -1561,6 +1564,9 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function prependByKey( $server_key, $key, $value, $group = 'default' ) {
+		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) )
+			return false;
+
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, prepend to runtime cache value, not Memcached
@@ -1574,7 +1580,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->cache[$server_key][$derived_key] = $result;
+			$this->cache[$server_key][$derived_key] = (string) $value . $this->cache[$server_key][$derived_key];
 
 		return $result;
 	}
