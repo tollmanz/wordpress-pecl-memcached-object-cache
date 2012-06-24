@@ -886,7 +886,7 @@ class WP_Object_Cache {
 	/**
 	 * Append data to an existing item.
 	 *
-	 * Note that the ints will become strings when using this method. This method
+	 * Note that the ints/floats will become strings when using this method. This method
 	 * does not work with mixed values, so everything is casted to string. Also note
 	 * that this method should throw an error if it is used with compressed data. This
 	 * is an expected behavior.
@@ -899,6 +899,9 @@ class WP_Object_Cache {
 	 * @return bool             Returns TRUE on success or FALSE on failure.
 	 */
 	public function append( $key, $value, $group = 'default' ) {
+		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) )
+			return false;
+
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, append to runtime cache value, not Memcached
@@ -920,7 +923,7 @@ class WP_Object_Cache {
 	/**
 	 * Append data to an existing item by server key.
 	 *
-	 * Note that the ints will become strings when using this method. This method
+	 * Note that the ints/floats will become strings when using this method. This method
 	 * does not work with mixed values, so everything is casted to string. Also note
 	 * that this method should throw an error if it is used with compressed data. This
 	 * is an expected behavior.
@@ -934,6 +937,9 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function appendByKey( $server_key, $key, $value, $group = 'default' ) {
+		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) )
+			return false;
+
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, append to runtime cache value, not Memcached
