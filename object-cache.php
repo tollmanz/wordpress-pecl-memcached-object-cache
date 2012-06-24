@@ -887,7 +887,9 @@ class WP_Object_Cache {
 	 * Append data to an existing item.
 	 *
 	 * Note that the ints will become strings when using this method. This method
-	 * does not work with mixed values, so everything is casted to string.
+	 * does not work with mixed values, so everything is casted to string. Also note
+	 * that this method should throw an error if it is used with compressed data. This
+	 * is an expected behavior.
 	 *
 	 * @link http://www.php.net/manual/en/memcached.append.php
 	 *
@@ -918,6 +920,11 @@ class WP_Object_Cache {
 	/**
 	 * Append data to an existing item by server key.
 	 *
+	 * Note that the ints will become strings when using this method. This method
+	 * does not work with mixed values, so everything is casted to string. Also note
+	 * that this method should throw an error if it is used with compressed data. This
+	 * is an expected behavior.
+	 *
 	 * @link http://www.php.net/manual/en/memcached.appendbykey.php
 	 *
 	 * @param string    $server_key     The key identifying the server to store the value on.
@@ -940,7 +947,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->cache[$server_key][$derived_key] = $result;
+			$this->cache[$server_key][$derived_key] = $this->cache[$server_key][$derived_key] . (string) $value;
 
 		return $result;
 	}
