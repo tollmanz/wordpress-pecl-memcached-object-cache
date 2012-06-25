@@ -961,7 +961,7 @@ class WP_Object_Cache {
 	/**
 	 * Performs a "check and set" to store data.
 	 *
-	 * The set will be successful only if the no other request has updated the value since it was fetched by
+	 * The set will be successful only if the no other request has updated the value since it was fetched since
 	 * this request.
 	 *
 	 * @link http://www.php.net/manual/en/memcached.cas.php
@@ -1184,21 +1184,22 @@ class WP_Object_Cache {
 	 * Gets an object from cache based on $key and $group. In order to fully support the $cache_cb and $cas_token
 	 * parameters, the runtime cache is ignored by this function if either of those values are set. If either of
 	 * those values are set, the request is made directly to the memcached server for proper handling of the
-	 * callback and/or token.
+	 * callback and/or token. Note that the $cas_token variable cannot be directly passed to the function. The
+	 * variable need to be first defined with a non null value.
 	 *
 	 * @link http://www.php.net/manual/en/memcached.get.php
 	 *
-	 * @param string        $key        The key under which to store the value.
-	 * @param string        $group      The group value appended to the $key.
-	 * @param null|string   $cache_cb   Read-through caching callback.
-	 * @param null|float    $cas_token  The variable to store the CAS token in.
-	 * @return bool|mixed               Cached object value.
+	 * @param   string        $key          The key under which to store the value.
+	 * @param   string        $group        The group value appended to the $key.
+	 * @param   null|callable $cache_cb     Read-through caching callback.
+	 * @param   null|float    $cas_token    The variable to store the CAS token in.
+	 * @return  bool|mixed                  Cached object value.
 	 */
 	public function get( $key, $group = 'default', $cache_cb = NULL, &$cas_token = NULL ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
-		if ( ! is_null( $cache_cb ) || ! is_null( $cas_token ) ) {
+		if ( is_callable( $cache_cb ) || ! is_null( $cas_token ) ) {
 			$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$derived_key] ) )
@@ -1206,7 +1207,7 @@ class WP_Object_Cache {
 			elseif ( in_array( $group, $this->no_mc_groups ) )
 				$value = false;
 			else
-				$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
+				$value = $this->m->get( $derived_key );
 		}
 
 		$this->cache[$derived_key] = $value;
@@ -1220,7 +1221,8 @@ class WP_Object_Cache {
 	 * Gets an object from cache based on $key, $group and $server_key. In order to fully support the $cache_cb and $cas_token
 	 * parameters, the runtime cache is ignored by this function if either of those values are set. If either of
 	 * those values are set, the request is made directly to the memcached server for proper handling of the
-	 * callback and/or token.
+	 * callback and/or token. Note that the $cas_token variable cannot be directly passed to the function. The
+	 * variable need to be first defined with a non null value.
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getbykey.php
 	 *
@@ -1231,11 +1233,11 @@ class WP_Object_Cache {
 	 * @param null|float    $cas_token  The variable to store the CAS token in.
 	 * @return bool|mixed               Cached object value.
 	 */
-	public function getByKey( $server_key, $key, $group = 'default', $cache_cb = NULL, $cas_token = NULL ) {
+	public function getByKey( $server_key, $key, $group = 'default', $cache_cb = NULL, &$cas_token = NULL ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
-		if ( ! is_null( $cache_cb ) || ! is_null( $cas_token ) ) {
+		if ( is_callable( $cache_cb ) || ! is_null( $cas_token ) ) {
 			$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$server_key][$derived_key] ) )
@@ -1243,7 +1245,7 @@ class WP_Object_Cache {
 			elseif ( in_array( $group, $this->no_mc_groups ) )
 				$value = false;
 			else
-				$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
+				$value = $this->m->getByKey( $server_key, $derived_key );
 		}
 
 		$this->cache[$server_key][$derived_key] = $value;
