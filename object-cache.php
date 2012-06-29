@@ -1143,7 +1143,7 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.fetch.php
 	 *
-	 * @return array|bool   Returns the next result or FALSE otherwise.
+	 * @return array|bool   Returns the next result or FALSE on failure.
 	 */
 	public function fetch() {
 		return $this->m->fetch();
@@ -1165,8 +1165,8 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.flush.php
 	 *
-	 * @param int       $delay  Number of seconds to wait before invalidating the items.
-	 * @return bool             Returns TRUE on success or FALSE on failure.
+	 * @param   int     $delay      Number of seconds to wait before invalidating the items.
+	 * @return  bool                Returns TRUE on success or FALSE on failure.
 	 */
 	public function flush( $delay = 0 ) {
 		$result = $this->m->flush( $delay );
@@ -1210,7 +1210,8 @@ class WP_Object_Cache {
 				$value = $this->m->get( $derived_key );
 		}
 
-		$this->cache[$derived_key] = $value;
+		if ( false !== $value )
+			$this->cache[$derived_key] = $value;
 
 		return $value;
 	}
@@ -1248,7 +1249,8 @@ class WP_Object_Cache {
 				$value = $this->m->getByKey( $server_key, $derived_key );
 		}
 
-		$this->cache[$server_key][$derived_key] = $value;
+		if ( false !== $value )
+			$this->cache[$server_key][$derived_key] = $value;
 
 		return $value;
 	}
