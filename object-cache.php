@@ -1199,7 +1199,7 @@ class WP_Object_Cache {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
-		if ( is_callable( $cache_cb ) || ! is_null( $cas_token ) ) {
+		if ( func_num_args() > 2 && ! in_array( $group, $this->no_mc_groups ) ) {
 			$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$derived_key] ) )
@@ -1238,7 +1238,7 @@ class WP_Object_Cache {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
-		if ( is_callable( $cache_cb ) || ! is_null( $cas_token ) ) {
+		if ( func_num_args() > 2 && ! in_array( $group, $this->no_mc_groups ) ) {
 			$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$server_key][$derived_key] ) )
