@@ -1203,7 +1203,7 @@ class WP_Object_Cache {
 			$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$derived_key] ) )
-				$value = $this->cache[$derived_key];
+				return $this->cache[$derived_key];
 			elseif ( in_array( $group, $this->no_mc_groups ) )
 				return false;
 			else
@@ -1242,7 +1242,7 @@ class WP_Object_Cache {
 			$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$server_key][$derived_key] ) )
-				$value = $this->cache[$server_key][$derived_key];
+				return $this->cache[$server_key][$derived_key];
 			elseif ( in_array( $group, $this->no_mc_groups ) )
 				return false;
 			else
