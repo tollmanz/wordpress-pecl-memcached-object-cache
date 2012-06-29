@@ -1205,12 +1205,12 @@ class WP_Object_Cache {
 			if ( isset( $this->cache[$derived_key] ) )
 				$value = $this->cache[$derived_key];
 			elseif ( in_array( $group, $this->no_mc_groups ) )
-				$value = false;
+				return false;
 			else
 				$value = $this->m->get( $derived_key );
 		}
 
-		if ( false !== $value )
+		if ( Memcached::RES_NOTFOUND != $this->getResultCode() )
 			$this->cache[$derived_key] = $value;
 
 		return $value;
@@ -1244,12 +1244,12 @@ class WP_Object_Cache {
 			if ( isset( $this->cache[$server_key][$derived_key] ) )
 				$value = $this->cache[$server_key][$derived_key];
 			elseif ( in_array( $group, $this->no_mc_groups ) )
-				$value = false;
+				return false;
 			else
 				$value = $this->m->getByKey( $server_key, $derived_key );
 		}
 
-		if ( false !== $value )
+		if ( Memcached::RES_NOTFOUND != $this->getResultCode() )
 			$this->cache[$server_key][$derived_key] = $value;
 
 		return $value;
