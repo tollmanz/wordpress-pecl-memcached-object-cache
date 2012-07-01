@@ -1320,9 +1320,9 @@ class WP_Object_Cache {
 		/**
 		 * If either $cas_tokens, or $flags is set, must hit Memcached and bypass runtime cache. Note that
 		 * this will purposely ignore no_mc_groups values as they cannot handle CAS tokens or the special
-		 * flags.
+		 * flags; however, if the groups of groups contains a no_mc_group, this is bypassed.
 		 */
-		if ( func_num_args() > 2 ) {
+		if ( func_num_args() > 2 && ! $this->contains_no_mc_group( $groups ) ) {
 			$values = $this->m->getMulti( $derived_keys, $cas_tokens, $flags );
 		} else {
 			$values = array();
@@ -1384,9 +1384,9 @@ class WP_Object_Cache {
 		/**
 		 * If either $cas_tokens, or $flags is set, must hit Memcached and bypass runtime cache. Note that
 		 * this will purposely ignore no_mc_groups values as they cannot handle CAS tokens or the special
-		 * flags.
+		 * flags; however, if the groups of groups contains a no_mc_group, this is bypassed.
 		 */
-		if ( func_num_args() > 2 ) {
+		if ( func_num_args() > 2 && ! $this->contains_no_mc_group( $groups ) ) {
 			$values = $this->m->getMultiByKey( $server_key, $derived_keys, $cas_tokens, $flags );
 		} else {
 			$values = array();
@@ -1917,6 +1917,27 @@ class WP_Object_Cache {
 		}
 
 		return $derived_keys;
+	}
+
+	/**
+	 * Determines if a no_mc_group exists in a groups of groups.
+	 *
+	 * @param   mixed   $groups     The groups to search.
+	 * @return  bool                True if a no_mc_group is present; false if a no_mc_group is not present.
+	 */
+	public function contains_no_mc_group( $groups ) {
+		if ( is_scalar( $groups ) )
+			return in_array( $groups, $this->no_mc_groups );
+
+		if ( ! is_array( $groups ) )
+			return false;
+
+		foreach ( $groups as $group ) {
+			if ( in_array( $group, $this->no_mc_groups ) )
+				return true;
+		}
+
+		return false;
 	}
 
 	/**
