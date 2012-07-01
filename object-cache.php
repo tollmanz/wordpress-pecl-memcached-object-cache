@@ -329,7 +329,7 @@ function wp_cache_get_by_key( $server_key, $key, $group = '', $cache_cb = NULL, 
  * @link http://www.php.net/manual/en/memcached.getdelayed.php
  *
  * @param string|array  $keys       Array or string of key(s) to request.
- * @param string|array  $groups     Array or string of group(s) for the key(s). See _buildKeys for more on how these are handled.
+ * @param string|array  $groups     Array or string of group(s) for the key(s). See buildKeys for more on how these are handled.
  * @param bool          $with_cas   Whether to request CAS token values also.
  * @param null          $value_cb   The result callback or NULL.
  * @return bool                     Returns TRUE on success or FALSE on failure.
@@ -346,7 +346,7 @@ function wp_cache_get_delayed( $keys, $groups = '', $with_cas = false, $value_cb
  *
  * @param string        $server_key The key identifying the server to store the value on.
  * @param string|array  $keys       Array or string of key(s) to request.
- * @param string|array  $groups     Array or string of group(s) for the key(s). See _buildKeys for more on how these are handled.
+ * @param string|array  $groups     Array or string of group(s) for the key(s). See buildKeys for more on how these are handled.
  * @param bool          $with_cas   Whether to request CAS token values also.
  * @param null          $value_cb   The result callback or NULL.
  * @return bool                     Returns TRUE on success or FALSE on failure.
@@ -359,7 +359,7 @@ function wp_cache_get_delayed_by_key( $server_key, $keys, $groups = '', $with_ca
 /**
  * Gets multiple values from memcached in one request.
  *
- * See the _buildKeys method definition to understand the $keys/$groups parameters.
+ * See the buildKeys method definition to understand the $keys/$groups parameters.
  *
  * @link http://www.php.net/manual/en/memcached.getmulti.php
  *
@@ -377,7 +377,7 @@ function wp_cache_get_multi( $keys, $groups = '', $cas_tokens = NULL, $flags = 0
 /**
  * Gets multiple values from memcached in one request by specified server key.
  *
- * See the _buildKeys method definition to understand the $keys/$groups parameters.
+ * See the buildKeys method definition to understand the $keys/$groups parameters.
  *
  * @link http://www.php.net/manual/en/memcached.getmultibykey.php
  *
@@ -605,7 +605,7 @@ function wp_cache_set( $key, $value, $group = '', $expiration = 0 ) {
  * By sending an array of $items to this function, all values are saved at once to
  * memcached, reducing the need for multiple requests to memcached. The $items array
  * keys and values are what are stored to memcached. The keys in the $items array
- * are merged with the $groups array/string value via _buildKeys to determine the
+ * are merged with the $groups array/string value via buildKeys to determine the
  * final key for the object.
  *
  * @param array         $items      An array of key/value pairs to store on the server.
@@ -624,7 +624,7 @@ function wp_cache_set_multi( $items, $groups = '', $expiration = 0 ) {
  * By sending an array of $items to this function, all values are saved at once to
  * memcached, reducing the need for multiple requests to memcached. The $items array
  * keys and values are what are stored to memcached. The keys in the $items array
- * are merged with the $groups array/string value via _buildKeys to determine the
+ * are merged with the $groups array/string value via buildKeys to determine the
  * final key for the object.
  *
  * @param string        $server_key The key identifying the server to store the value on.
@@ -1274,7 +1274,7 @@ class WP_Object_Cache {
 	 * @link http://www.php.net/manual/en/memcached.getdelayed.php
 	 *
 	 * @param   string|array    $keys       Array or string of key(s) to request.
-	 * @param   string|array    $groups     Array or string of group(s) for the key(s). See _buildKeys for more on how these are handled.
+	 * @param   string|array    $groups     Array or string of group(s) for the key(s). See buildKeys for more on how these are handled.
 	 * @param   bool            $with_cas   Whether to request CAS token values also.
 	 * @param   null            $value_cb   The result callback or NULL.
 	 * @return  bool                        Returns TRUE on success or FALSE on failure.
@@ -1291,7 +1291,7 @@ class WP_Object_Cache {
 	 *
 	 * @param string        $server_key The key identifying the server to store the value on.
 	 * @param string|array  $keys       Array or string of key(s) to request.
-	 * @param string|array  $groups     Array or string of group(s) for the key(s). See _buildKeys for more on how these are handled.
+	 * @param string|array  $groups     Array or string of group(s) for the key(s). See buildKeys for more on how these are handled.
 	 * @param bool          $with_cas   Whether to request CAS token values also.
 	 * @param null          $value_cb   The result callback or NULL.
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
@@ -1304,7 +1304,7 @@ class WP_Object_Cache {
 	/**
 	 * Gets multiple values from memcached in one request.
 	 *
-	 * See the _buildKeys method definition to understand the $keys/$groups parameters.
+	 * See the buildKeys method definition to understand the $keys/$groups parameters.
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getmulti.php
 	 *
@@ -1363,7 +1363,7 @@ class WP_Object_Cache {
 	/**
 	 * Gets multiple values from memcached in one request by specified server key.
 	 *
-	 * See the _buildKeys method definition to understand the $keys/$groups parameters.
+	 * See the buildKeys method definition to understand the $keys/$groups parameters.
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getmultibykey.php
 	 *
@@ -1750,7 +1750,7 @@ class WP_Object_Cache {
 	 * By sending an array of $items to this function, all values are saved at once to
 	 * memcached, reducing the need for multiple requests to memcached. The $items array
 	 * keys and values are what are stored to memcached. The keys in the $items array
-	 * are merged with the $groups array/string value via _buildKeys to determine the
+	 * are merged with the $groups array/string value via buildKeys to determine the
 	 * final key for the object.
 	 *
 	 * @param array         $items      An array of key/value pairs to store on the server.
@@ -1792,7 +1792,7 @@ class WP_Object_Cache {
 	 * By sending an array of $items to this function, all values are saved at once to
 	 * memcached, reducing the need for multiple requests to memcached. The $items array
 	 * keys and values are what are stored to memcached. The keys in the $items array
-	 * are merged with the $groups array/string value via _buildKeys to determine the
+	 * are merged with the $groups array/string value via buildKeys to determine the
 	 * final key for the object.
 	 *
 	 * @param string        $server_key The key identifying the server to store the value on.
