@@ -283,14 +283,21 @@ function wp_cache_flush( $delay = 0 ) {
  *
  * @param string        $key        The key under which to store the value.
  * @param string        $group      The group value appended to the $key.
- * @param string        $deprecated Was previously used as the $force variable.
- * @param null|mixed    $found      The variable to store the found result in.
  * @param null|string   $cache_cb   Read-through caching callback.
  * @param null|float    $cas_token  The variable to store the CAS token in.
  * @return bool|mixed               Cached object value.
  */
-function wp_cache_get( $key, $group = '', $deprecated = '', &$found = null, $cache_cb = null, &$cas_token = null ) {
+function wp_cache_get( $key, $group = '', $cache_cb = null, &$cas_token = null ) {
 	global $wp_object_cache;
+
+	/**
+	 * Handles situations where the $force argument for the wp_cache_get function in core may be used. It is only
+	 * used once in all of WP Core and since the functions does not do anything with it, it is pointless to support.
+	 * I'm caching the issue here to avoid conflicts.
+	 */
+	if ( true === $cache_cb )
+		$cache_cb = null;
+
 	return $wp_object_cache->get( $key, $group, $cache_cb, $cas_token );
 }
 
@@ -1187,6 +1194,9 @@ class WP_Object_Cache {
 	 * callback and/or token. Note that the $cas_token variable cannot be directly passed to the function. The
 	 * variable need to be first defined with a non null value.
 	 *
+	 * If using the $cache_cb argument, the new value will always have an expiration of time of 0 (forever). This
+	 * is a limitation of the Memcached PECL extension.
+	 *
 	 * @link http://www.php.net/manual/en/memcached.get.php
 	 *
 	 * @param   string        $key          The key under which to store the value.
@@ -1224,6 +1234,9 @@ class WP_Object_Cache {
 	 * those values are set, the request is made directly to the memcached server for proper handling of the
 	 * callback and/or token. Note that the $cas_token variable cannot be directly passed to the function. The
 	 * variable need to be first defined with a non null value.
+	 *
+	 * If using the $cache_cb argument, the new value will always have an expiration of time of 0 (forever). This
+	 * is a limitation of the Memcached PECL extension.
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getbykey.php
 	 *
