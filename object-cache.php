@@ -1122,11 +1122,11 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.deletebykey.php
 	 *
-	 * @param string        $server_key The key identifying the server to store the value on.
-	 * @param string        $key        The key under which to store the value.
-	 * @param string        $group      The group value appended to the $key.
-	 * @param int           $time       The amount of time the server will wait to delete the item in seconds.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @param   string      $server_key The key identifying the server to store the value on.
+	 * @param   string      $key        The key under which to store the value.
+	 * @param   string      $group      The group value appended to the $key.
+	 * @param   int         $time       The amount of time the server will wait to delete the item in seconds.
+	 * @return  bool                    Returns TRUE on success or FALSE on failure.
 	 */
 	public function deleteByKey( $server_key, $key, $group = 'default', $time = 0 ) {
 		$derived_key = $this->buildKey( $key, $group );
@@ -1161,7 +1161,7 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.fetchall.php
 	 *
-	 * @return array|bool   Returns the results or FALSE on failure.
+	 * @return  array|bool          Returns the results or FALSE on failure.
 	 */
 	public function fetchAll() {
 	 	return $this->m->fetchAll();
@@ -1289,12 +1289,12 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getdelayed.php
 	 *
-	 * @param string        $server_key The key identifying the server to store the value on.
-	 * @param string|array  $keys       Array or string of key(s) to request.
-	 * @param string|array  $groups     Array or string of group(s) for the key(s). See buildKeys for more on how these are handled.
-	 * @param bool          $with_cas   Whether to request CAS token values also.
-	 * @param null          $value_cb   The result callback or NULL.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @param   string          $server_key The key identifying the server to store the value on.
+	 * @param   string|array    $keys       Array or string of key(s) to request.
+	 * @param   string|array    $groups     Array or string of group(s) for the key(s). See buildKeys for more on how these are handled.
+	 * @param   bool            $with_cas   Whether to request CAS token values also.
+	 * @param   null            $value_cb   The result callback or NULL.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function getDelayedByKey( $server_key, $keys, $groups = 'default', $with_cas = false, $value_cb = NULL ) {
 		$derived_keys = $this->buildKeys( $keys, $groups );
@@ -1308,11 +1308,11 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getmulti.php
 	 *
-	 * @param array         $keys       Array of keys to retrieve.
-	 * @param string|array  $groups     If string, used for all keys. If arrays, corresponds with the $keys array.
-	 * @param null|array    $cas_tokens The variable to store the CAS tokens for the found items.
-	 * @param int           $flags      The flags for the get operation.
-	 * @return bool|array               Returns the array of found items or FALSE on failure.
+	 * @param   array           $keys       Array of keys to retrieve.
+	 * @param   string|array    $groups     If string, used for all keys. If arrays, corresponds with the $keys array.
+	 * @param   null|array      $cas_tokens The variable to store the CAS tokens for the found items.
+	 * @param   int             $flags      The flags for the get operation.
+	 * @return  bool|array                  Returns the array of found items or FALSE on failure.
 	 */
 	public function getMulti( $keys, $groups = 'default', $cas_tokens = NULL, $flags = 0 ) {
 		$derived_keys = $this->buildKeys( $keys, $groups );
@@ -1322,26 +1322,26 @@ class WP_Object_Cache {
 			$values = $this->m->getMulti( $derived_keys, $cas_tokens, $flags );
 		} else {
 			$values = array();
-			$new_to_get = array();
+			$need_to_get = array();
 
 			// Pull out values from runtime cache, or mark for retrieval
 			foreach ( $derived_keys as $key ) {
 				if ( isset( $this->cache[$key] ) )
 					$values[$key] = $this->cache[$key];
 				else
-					$new_to_get[$key] = $key;
+					$need_to_get[$key] = $key;
 			}
 
 			// Get those keys not found in the runtime cache
-			if ( ! empty( $new_to_get ) )
-				$result = $this->m->getMulti( array_keys( $new_to_get ), $cas_tokens, $flags );
+			if ( ! empty( $need_to_get ) )
+				$result = $this->m->getMulti( array_keys( $need_to_get ), $cas_tokens, $flags );
 
 			// Merge with values found in runtime cache
 			if ( isset( $result ) && false !== $result )
 				$values = array_merge( $values, $result );
 
 			// If order should be preserved, reorder now
-			if ( ! empty( $new_to_get ) && $flags == $this->getOption( Memcached::GET_PRESERVE_ORDER )  ) {
+			if ( ! empty( $need_to_get ) && $flags == $this->getOption( Memcached::GET_PRESERVE_ORDER )  ) {
 				$ordered_values = array();
 
 				foreach ( $derived_keys as $key ) {
@@ -1367,12 +1367,12 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getmultibykey.php
 	 *
-	 * @param string        $server_key The key identifying the server to store the value on.
-	 * @param array         $keys       Array of keys to retrieve.
-	 * @param string|array  $groups     If string, used for all keys. If arrays, corresponds with the $keys array.
-	 * @param null|array    $cas_tokens The variable to store the CAS tokens for the found items.
-	 * @param int           $flags      The flags for the get operation.
-	 * @return bool|array               Returns the array of found items or FALSE on failure.
+	 * @param   string          $server_key The key identifying the server to store the value on.
+	 * @param   array           $keys       Array of keys to retrieve.
+	 * @param   string|array    $groups     If string, used for all keys. If arrays, corresponds with the $keys array.
+	 * @param   null|array      $cas_tokens The variable to store the CAS tokens for the found items.
+	 * @param   int             $flags      The flags for the get operation.
+	 * @return  bool|array                  Returns the array of found items or FALSE on failure.
 	 */
 	public function getMultiByKey( $server_key, $keys, $groups = 'default', $cas_tokens = NULL, $flags = 0 ) {
 		$derived_keys = $this->buildKeys( $keys, $groups );
@@ -1382,26 +1382,26 @@ class WP_Object_Cache {
 			$values = $this->m->getMultiByKey( $server_key, $derived_keys, $cas_tokens, $flags );
 		} else {
 			$values = array();
-			$new_to_get = array();
+			$need_to_get = array();
 
 			// Pull out values from runtime cache, or mark for retrieval
 			foreach ( $derived_keys as $key ) {
 				if ( isset( $this->cache[$server_key][$key] ) )
 					$values[$key] = $this->cache[$server_key][$key];
 				else
-					$new_to_get[$key] = $key;
+					$need_to_get[$key] = $key;
 			}
 
 			// Get those keys not found in the runtime cache
-			if ( ! empty( $new_to_get ) )
-				$result = $this->m->getMulti( $server_key, array_keys( $new_to_get ), $cas_tokens, $flags );
+			if ( ! empty( $need_to_get ) )
+				$result = $this->m->getMulti( $server_key, array_keys( $need_to_get ), $cas_tokens, $flags );
 
 			// Merge with values found in runtime cache
 			if ( isset( $result ) && false !== $result )
 				$values = array_merge( $values, $result );
 
 			// If order should be preserved, reorder now
-			if ( ! empty( $new_to_get ) && $flags == $this->getOption( Memcached::GET_PRESERVE_ORDER ) ) {
+			if ( ! empty( $need_to_get ) && $flags == $this->getOption( Memcached::GET_PRESERVE_ORDER ) ) {
 				$ordered_values = array();
 
 				foreach ( $derived_keys as $key ) {
@@ -1425,8 +1425,8 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getoption.php
 	 *
-	 * @param int   $option One of the Memcached::OPT_* constants.
-	 * @return mixed        Returns the value of the requested option, or FALSE on error.
+	 * @param   int         $option     One of the Memcached::OPT_* constants.
+	 * @return  mixed                   Returns the value of the requested option, or FALSE on error.
 	 */
 	public function getOption( $option ) {
 		return $this->m->getOption( $option );
