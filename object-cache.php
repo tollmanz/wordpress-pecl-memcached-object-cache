@@ -1240,12 +1240,12 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getbykey.php
 	 *
-	 * @param string        $server_key The key identifying the server to store the value on.
-	 * @param string        $key        The key under which to store the value.
-	 * @param string        $group      The group value appended to the $key.
-	 * @param null|string   $cache_cb   Read-through caching callback.
-	 * @param null|float    $cas_token  The variable to store the CAS token in.
-	 * @return bool|mixed               Cached object value.
+	 * @param   string          $server_key The key identifying the server to store the value on.
+	 * @param   string          $key        The key under which to store the value.
+	 * @param   string          $group      The group value appended to the $key.
+	 * @param   null|string     $cache_cb   Read-through caching callback.
+	 * @param   null|float      $cas_token  The variable to store the CAS token in.
+	 * @return  bool|mixed                  Cached object value.
 	 */
 	public function getByKey( $server_key, $key, $group = 'default', $cache_cb = NULL, &$cas_token = NULL ) {
 		$derived_key = $this->buildKey( $key, $group );
@@ -1273,11 +1273,11 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getdelayed.php
 	 *
-	 * @param string|array  $keys       Array or string of key(s) to request.
-	 * @param string|array  $groups     Array or string of group(s) for the key(s). See _buildKeys for more on how these are handled.
-	 * @param bool          $with_cas   Whether to request CAS token values also.
-	 * @param null          $value_cb   The result callback or NULL.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @param   string|array    $keys       Array or string of key(s) to request.
+	 * @param   string|array    $groups     Array or string of group(s) for the key(s). See _buildKeys for more on how these are handled.
+	 * @param   bool            $with_cas   Whether to request CAS token values also.
+	 * @param   null            $value_cb   The result callback or NULL.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function getDelayed( $keys, $groups = 'default', $with_cas = false, $value_cb = NULL ) {
 		$derived_keys = $this->buildKeys( $keys, $groups );
