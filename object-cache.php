@@ -369,7 +369,7 @@ function wp_cache_get_delayed_by_key( $server_key, $keys, $groups = '', $with_ca
  * @param int           $flags      The flags for the get operation.
  * @return bool|array               Returns the array of found items or FALSE on failure.
  */
-function wp_cache_get_multi( $keys, $groups = '', $cas_tokens = NULL, $flags = NULL ) {
+function wp_cache_get_multi( $keys, $groups = '', &$cas_tokens = NULL, $flags = NULL ) {
 	global $wp_object_cache;
 	return $wp_object_cache->getMulti( $keys, $groups, $cas_tokens, $flags );
 }
@@ -388,7 +388,7 @@ function wp_cache_get_multi( $keys, $groups = '', $cas_tokens = NULL, $flags = N
  * @param int           $flags      The flags for the get operation.
  * @return bool|array               Returns the array of found items or FALSE on failure.
  */
-function wp_cache_get_multi_by_key( $server_key, $keys, $groups = '', $cas_tokens = NULL, $flags = NULL ) {
+function wp_cache_get_multi_by_key( $server_key, $keys, $groups = '', &$cas_tokens = NULL, $flags = NULL ) {
 	global $wp_object_cache;
 	return $wp_object_cache->getMultiByKey( $server_key, $keys, $groups, $cas_tokens, $flags );
 }
