@@ -1974,8 +1974,28 @@ class WP_Object_Cache {
 		$this->no_mc_groups = array_unique( $this->no_mc_groups );
 	}
 
-	public function get_from_runtime_cache( $key, $group ) {
+	/**
+	 * Get a value specifically from the internal, run-time cache, not memcached.
+	 *
+	 * @param   int|string  $key        Key value.
+	 * @param   int|string  $group      Group that the value belongs to.
+	 * @param   int|string  $server_key Server on which to locate the key.
+	 * @return  bool|mixed              Value on success; false on failure.
+	 */
+	public function get_from_runtime_cache( $key, $group, $server_key = '' ) {
 		$derived_key = $this->buildKey( $key, $group );
-		return $this->cache[$derived_key];
+
+		if ( ! empty( $server_key ) ) {
+			if ( ! is_scalar( $server_key ) )
+				return false;
+
+			if ( isset( $this->cache[$server_key][$derived_key] ) )
+				return $this->cache[$server_key][$derived_key];
+		}
+
+		if ( isset( $this->cache[$derived_key] ) )
+			return $this->cache[$derived_key];
+
+		return false;
 	}
 }
