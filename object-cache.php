@@ -35,7 +35,7 @@ function wp_cache_add( $key, $value, $group = '', $expiration = 0 ) {
  * @param int       $expiration     The expiration time, defaults to 0.
  * @return bool                     Returns TRUE on success or FALSE on failure.
  */
-function wp_cache_add_by_key( $server_key, $key, $value, $group = '', $expiration ) {
+function wp_cache_add_by_key( $server_key, $key, $value, $group = '', $expiration = 0 ) {
 	global $wp_object_cache;
 	return $wp_object_cache->addByKey( $server_key, $key, $value, $group, $expiration );
 }
