@@ -1314,7 +1314,7 @@ class WP_Object_Cache {
 	 * @param   int             $flags      The flags for the get operation.
 	 * @return  bool|array                  Returns the array of found items or FALSE on failure.
 	 */
-	public function getMulti( $keys, $groups = 'default', $cas_tokens = NULL, $flags = NULL ) {
+	public function getMulti( $keys, $groups = 'default', &$cas_tokens = NULL, $flags = NULL ) {
 		$derived_keys = $this->buildKeys( $keys, $groups );
 
 		/**
@@ -1378,7 +1378,7 @@ class WP_Object_Cache {
 	 * @param   int             $flags      The flags for the get operation.
 	 * @return  bool|array                  Returns the array of found items or FALSE on failure.
 	 */
-	public function getMultiByKey( $server_key, $keys, $groups = 'default', $cas_tokens = NULL, $flags = NULL ) {
+	public function getMultiByKey( $server_key, $keys, $groups = 'default', &$cas_tokens = NULL, $flags = NULL ) {
 		$derived_keys = $this->buildKeys( $keys, $groups );
 
 		/**
