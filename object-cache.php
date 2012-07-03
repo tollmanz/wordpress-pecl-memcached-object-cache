@@ -1445,7 +1445,7 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getresultcode.php
 	 *
-	 * @return int  Result code of the last Memcached operation.
+	 * @return  int     Result code of the last Memcached operation.
 	 */
 	public function getResultCode() {
  	    return $this->m->getResultCode();
@@ -1456,7 +1456,7 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getresultmessage.php
 	 *
-	 * @return string   Message describing the result of the last Memcached operation.
+	 * @return  string      Message describing the result of the last Memcached operation.
 	 */
 	public function getResultMessage() {
    	    return $this->m->getResultMessage();
@@ -1467,8 +1467,8 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getserverbykey.php
 	 *
-	 * @param string    $server_key The key identifying the server to store the value on.
-	 * @return array                Array with host, post, and weight on success, FALSE on failure.
+	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @return  array                        Array with host, post, and weight on success, FALSE on failure.
 	 */
 	public function getServerByKey( $server_key ) {
 		return $this->m->getServerByKey( $server_key );
@@ -1479,7 +1479,7 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getserverlist.php
 	 *
-	 * @return array    The list of all servers in the server pool.
+	 * @return  array       The list of all servers in the server pool.
 	 */
 	public function getServerList() {
 		return $this->m->getServerList();
@@ -1490,7 +1490,7 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getstats.php
 	 *
-	 * @return array    Array of server statistics, one entry per server.
+	 * @return  array       Array of server statistics, one entry per server.
 	 */
 	public function getStats() {
 		return $this->m->getStats();
@@ -1501,7 +1501,7 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.getversion.php
 	 *
-	 * @return array    Array of server versions, one entry per server.
+	 * @return  array       Array of server versions, one entry per server.
 	 */
 	public function getVersion() {
 		return $this->m->getVersion();
