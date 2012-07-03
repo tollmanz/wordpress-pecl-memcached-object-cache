@@ -1402,7 +1402,7 @@ class WP_Object_Cache {
 
 			// Get those keys not found in the runtime cache
 			if ( ! empty( $need_to_get ) )
-				$result = $this->m->getMulti( $server_key, array_keys( $need_to_get ) );
+				$result = $this->m->getMultiByKey( $server_key, array_keys( $need_to_get ) );
 
 			// Merge with values found in runtime cache
 			if ( isset( $result ) && false !== $result )
