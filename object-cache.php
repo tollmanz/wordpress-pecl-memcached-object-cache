@@ -742,9 +742,9 @@ class WP_Object_Cache {
 	 * Instantiates the Memcached class and returns adds the servers specified
 	 * in the $memcached_servers global array.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.construct.php
+	 * @link    http://www.php.net/manual/en/memcached.construct.php
 	 *
-	 * @param null  $persistent_id  To create an instance that persists between requests, use persistent_id to specify a unique ID for the instance.
+	 * @param   null    $persistent_id      To create an instance that persists between requests, use persistent_id to specify a unique ID for the instance.
 	 */
 	public function __construct( $persistent_id = NULL ) {
 		global $memcached_servers, $blog_id, $table_prefix;
@@ -781,15 +781,16 @@ class WP_Object_Cache {
 	 * If the specified key already exists, the value is not stored and the function
 	 * returns false.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.add.php
+	 * @link    http://www.php.net/manual/en/memcached.add.php
 	 *
-	 * @param string    $key        The key under which to store the value.
-	 * @param mixed     $value      The value to store.
-	 * @param string    $group      The group value appended to the $key.
-	 * @param int       $expiration The expiration time, defaults to 0.
-	 * @return bool                 Returns TRUE on success or FALSE on failure.
+	 * @param   string      $key            The key under which to store the value.
+	 * @param   mixed       $value          The value to store.
+	 * @param   string      $group          The group value appended to the $key.
+	 * @param   int         $expiration     The expiration time, defaults to 0.
+	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
-	public function add( $key, $value, $group = 'default', $expiration = 0 ) {
+	public function add( $key, $value, $group = 'default', $expiration = 0, $server_key = '' ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
@@ -804,7 +805,10 @@ class WP_Object_Cache {
 		}
 
 		// Save to Memcached
-		$result = $this->m->add( $derived_key, $value, absint( $expiration ) );
+		if ( ! empty( $server_key ) )
+			$result = $this->m->addByKey( $server_key, $derived_key, $value, absint( $expiration ) );
+		else
+			$result = $this->m->add( $derived_key, $value, absint( $expiration ) );
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
@@ -821,37 +825,17 @@ class WP_Object_Cache {
 	 * _cache object as part of the runtime cache. It will add it to an array for the
 	 * specified server_key.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.addbykey.php
+	 * @link    http://www.php.net/manual/en/memcached.addbykey.php
 	 *
-	 * @param string    $server_key     The key identifying the server to store the value on.
-	 * @param string    $key            The key under which to store the value.
-	 * @param mixed     $value          The value to store.
-	 * @param string    $group          The group value appended to the $key.
-	 * @param int       $expiration     The expiration time, defaults to 0.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @param   string      $key            The key under which to store the value.
+	 * @param   mixed       $value          The value to store.
+	 * @param   string      $group          The group value appended to the $key.
+	 * @param   int         $expiration     The expiration time, defaults to 0.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function addByKey( $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
-		$derived_key = $this->buildKey( $key, $group );
-
-		// If group is a non-Memcached group, save to runtime cache, not Memcached
-		if ( in_array( $group, $this->no_mc_groups ) ) {
-
-			// Add does not set the value if the key exists; mimic that here
-			if ( isset( $this->cache[$derived_key] ) )
-				return false;
-
-			$this->cache[$derived_key] = $value;
-			return true;
-		}
-
-		// Save to Memcached
-		$result = $this->m->addByKey( $server_key, $derived_key, $value, absint( $expiration ) );
-
-		// Store in runtime cache if add was successful
-		if ( false !== $result )
-			$this->cache[$derived_key] = $value;
-
-		return $result;
+		return $this->add( $key, $value, $group, $server_key, $expiration );
 	}
 
 	/**
@@ -859,10 +843,10 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.addserver.php
 	 *
-	 * @param string        $host   The hostname of the memcache server.
-	 * @param int           $port   The port on which memcache is running.
-	 * @param int           $weight The weight of the server relative to the total weight of all the servers in the pool.
-	 * @return bool                 Returns TRUE on success or FALSE on failure.
+	 * @param   string      $host           The hostname of the memcache server.
+	 * @param   int         $port           The port on which memcache is running.
+	 * @param   int         $weight         The weight of the server relative to the total weight of all the servers in the pool.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function addServer( $host, $port, $weight = 0 ) {
 		$host = is_string( $host ) ? $host : '127.0.0.1';
@@ -878,10 +862,10 @@ class WP_Object_Cache {
 	 * Each individual server in the array must include a domain and port, with an optional
 	 * weight value: $servers = array( array( '127.0.0.1', 11211, 0 ) );
 	 *
-	 * @link http://www.php.net/manual/en/memcached.addservers.php
+	 * @link    http://www.php.net/manual/en/memcached.addservers.php
 	 *
-	 * @param array     $servers    Array of server to register.
-	 * @return bool                 True on success; false on failure.
+	 * @param   array       $servers        Array of server to register.
+	 * @return  bool                        True on success; false on failure.
 	 */
 	public function addServers( $servers ) {
 		if ( ! is_object( $this->m ) )
@@ -898,14 +882,15 @@ class WP_Object_Cache {
 	 * that this method should throw an error if it is used with compressed data. This
 	 * is an expected behavior.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.append.php
+	 * @link    http://www.php.net/manual/en/memcached.append.php
 	 *
-	 * @param string    $key    The key under which to store the value.
-	 * @param string    $value  Must be string as appending mixed values is not well-defined.
-	 * @param string    $group  The group value appended to the $key.
-	 * @return bool             Returns TRUE on success or FALSE on failure.
+	 * @param   string      $key            The key under which to store the value.
+	 * @param   string      $value          Must be string as appending mixed values is not well-defined.
+	 * @param   string      $group          The group value appended to the $key.
+	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
-	public function append( $key, $value, $group = 'default' ) {
+	public function append( $key, $value, $group = 'default', $server_key = '' ) {
 		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) )
 			return false;
 
@@ -935,34 +920,16 @@ class WP_Object_Cache {
 	 * that this method should throw an error if it is used with compressed data. This
 	 * is an expected behavior.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.appendbykey.php
+	 * @link    http://www.php.net/manual/en/memcached.appendbykey.php
 	 *
-	 * @param string    $server_key     The key identifying the server to store the value on.
-	 * @param string    $key            The key under which to store the value.
-	 * @param string    $value          Must be string as appending mixed values is not well-defined
-	 * @param string    $group          The group value appended to the $key.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @param   string      $key            The key under which to store the value.
+	 * @param   string      $value          Must be string as appending mixed values is not well-defined
+	 * @param   string      $group          The group value appended to the $key.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function appendByKey( $server_key, $key, $value, $group = 'default' ) {
-		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) )
-			return false;
-
-		$derived_key = $this->buildKey( $key, $group );
-
-		// If group is a non-Memcached group, append to runtime cache value, not Memcached
-		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->cache[$derived_key] = $this->cache[$derived_key] . (string) $value;
-			return true;
-		}
-
-		// Append to Memcached value
-		$result = $this->m->appendByKey( $server_key, $derived_key, $value );
-
-		// Store in runtime cache if add was successful
-		if ( false !== $result )
-			$this->cache[$derived_key] = $this->cache[$derived_key] . (string) $value;
-
-		return $result;
+		return $this->append( $key, $value, $group, $server_key );
 	}
 
 	/**
