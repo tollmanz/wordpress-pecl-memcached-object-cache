@@ -1534,7 +1534,7 @@ class WP_Object_Cache {
 	 * This method is similar to "add"; however, is does not successfully set a value if
 	 * the object's key is not already set in cache.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.replace.php
+	 * @link    http://www.php.net/manual/en/memcached.replace.php
 	 *
 	 * @param   string      $server_key     The key identifying the server to store the value on.
 	 * @param   string      $key            The key under which to store the value.
@@ -1566,7 +1566,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->cache[$derived_key] = $value;
+			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $result;
 	}
@@ -1577,7 +1577,7 @@ class WP_Object_Cache {
 	 * This method is similar to "addByKey"; however, is does not successfully set a value if
 	 * the object's key is not already set in cache.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.addbykey.php
+	 * @link    http://www.php.net/manual/en/memcached.addbykey.php
 	 *
 	 * @param   string      $server_key     The key identifying the server to store the value on.
 	 * @param   string      $key            The key under which to store the value.
