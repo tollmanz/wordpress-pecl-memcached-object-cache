@@ -1156,23 +1156,31 @@ class WP_Object_Cache {
 	 *
 	 * @param   string        $key          The key under which to store the value.
 	 * @param   string        $group        The group value appended to the $key.
+	 * @param   string        $server_key   The key identifying the server to store the value on.
 	 * @param   null|callable $cache_cb     Read-through caching callback.
 	 * @param   null|float    $cas_token    The variable to store the CAS token in.
 	 * @return  bool|mixed                  Cached object value.
 	 */
-	public function get( $key, $group = 'default', $cache_cb = NULL, &$cas_token = NULL ) {
+	public function get( $key, $group = 'default', $server_key = '', $cache_cb = NULL, &$cas_token = NULL ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
-		if ( func_num_args() > 2 && ! in_array( $group, $this->no_mc_groups ) ) {
-			$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
-		} else {
-			if ( isset( $this->cache[$derived_key] ) )
-				return $this->cache[$derived_key];
-			elseif ( in_array( $group, $this->no_mc_groups ) )
-				return false;
+		if ( func_num_args() > 3 && ! in_array( $group, $this->no_mc_groups ) ) {
+			if ( ! empty( $server_key ) )
+				$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 			else
-				$value = $this->m->get( $derived_key );
+				$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
+		} else {
+			if ( isset( $this->cache[$derived_key] ) ) {
+				return $this->cache[$derived_key];
+			} elseif ( in_array( $group, $this->no_mc_groups ) ) {
+				return false;
+			} else {
+				if ( ! empty( $server_key ) )
+					$value = $this->m->get( $derived_key );
+				else
+					$value = $this->m->getByKey( $server_key, $derived_key );
+			}
 		}
 
 		if ( Memcached::RES_NOTFOUND != $this->getResultCode() )
@@ -1203,24 +1211,10 @@ class WP_Object_Cache {
 	 * @return  bool|mixed                  Cached object value.
 	 */
 	public function getByKey( $server_key, $key, $group = 'default', $cache_cb = NULL, &$cas_token = NULL ) {
-		$derived_key = $this->buildKey( $key, $group );
-
-		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
-		if ( func_num_args() > 2 && ! in_array( $group, $this->no_mc_groups ) ) {
-			$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
-		} else {
-			if ( isset( $this->cache[$derived_key] ) )
-				return $this->cache[$derived_key];
-			elseif ( in_array( $group, $this->no_mc_groups ) )
-				return false;
-			else
-				$value = $this->m->getByKey( $server_key, $derived_key );
-		}
-
-		if ( Memcached::RES_NOTFOUND != $this->getResultCode() )
-			$this->cache[$derived_key] = $value;
-
-		return $value;
+		if ( func_num_args() > 3 )
+			return $this->get( $key, $group, $server_key, $cache_cb, $cas_token );
+		else
+			return $this->get( $key, $group, $server_key );
 	}
 
 	/**
