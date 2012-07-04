@@ -1469,14 +1469,16 @@ class WP_Object_Cache {
 	/**
 	 * Prepend data to an existing item.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.prepend.php
+	 * @link    http://www.php.net/manual/en/memcached.prepend.php
 	 *
-	 * @param string    $key    The key under which to store the value.
-	 * @param string    $value  Must be string as prepending mixed values is not well-defined.
-	 * @param string    $group  The group value prepended to the $key.
-	 * @return bool             Returns TRUE on success or FALSE on failure.
+	 * @param   string    $key          The key under which to store the value.
+	 * @param   string    $value        Must be string as prepending mixed values is not well-defined.
+	 * @param   string    $group        The group value prepended to the $key.
+	 * @param   string    $server_key   The key identifying the server to store the value on.
+	 * @param   bool      $byKey        True to store in internal cache by key; false to not store by key
+	 * @return  bool                    Returns TRUE on success or FALSE on failure.
 	 */
-	public function prepend( $key, $value, $group = 'default' ) {
+	public function prepend( $key, $value, $group = 'default', $server_key = '', $byKey = false ) {
 		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) )
 			return false;
 
@@ -1501,34 +1503,16 @@ class WP_Object_Cache {
 	/**
 	 * Append data to an existing item by server key.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.prependbykey.php
+	 * @link    http://www.php.net/manual/en/memcached.prependbykey.php
 	 *
-	 * @param string    $server_key     The key identifying the server to store the value on.
-	 * @param string    $key            The key under which to store the value.
-	 * @param string    $value          Must be string as prepending mixed values is not well-defined.
-	 * @param string    $group          The group value prepended to the $key.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @param   string    $server_key   The key identifying the server to store the value on.
+	 * @param   string    $key          The key under which to store the value.
+	 * @param   string    $value        Must be string as prepending mixed values is not well-defined.
+	 * @param   string    $group        The group value prepended to the $key.
+	 * @return  bool                    Returns TRUE on success or FALSE on failure.
 	 */
 	public function prependByKey( $server_key, $key, $value, $group = 'default' ) {
-		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) )
-			return false;
-
-		$derived_key = $this->buildKey( $key, $group );
-
-		// If group is a non-Memcached group, prepend to runtime cache value, not Memcached
-		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->cache[$derived_key] = (string) $value . $this->cache[$derived_key];
-			return true;
-		}
-
-		// Append to Memcached value
-		$result = $this->m->prependByKey( $server_key, $derived_key, $value );
-
-		// Store in runtime cache if add was successful
-		if ( false !== $result )
-			$this->cache[$derived_key] = (string) $value . $this->cache[$derived_key];
-
-		return $result;
+		return $this->prepend( $key, $value, $group, $server_key, true );
 	}
 
 	/**
