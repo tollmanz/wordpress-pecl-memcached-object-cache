@@ -1017,8 +1017,8 @@ class WP_Object_Cache {
 		// Decrement values in no_mc_groups
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
-			// Only decrement if the key already exists
-			if ( isset( $this->cache[$derived_key] ) ) {
+			// Only decrement if the key already exists and value is 0 or greater (mimics memcached behavior)
+			if ( isset( $this->cache[$derived_key] ) && $this->cache[$derived_key] >= 0 ) {
 
 				// If numeric, subtract; otherwise, consider it 0 and do nothing
 				if ( is_numeric( $this->cache[$derived_key] ) )
@@ -1036,7 +1036,12 @@ class WP_Object_Cache {
 			}
 		}
 
-		return $this->m->decrement( $derived_key, $offset );
+		$result = $this->m->decrement( $derived_key, $offset );
+
+		if ( false !== $result )
+			$this->add_to_internal_cache( $derived_key, $result );
+
+		return $result;
 	}
 
 	/**
@@ -1375,7 +1380,7 @@ class WP_Object_Cache {
 	/**
 	 * Return the message describing the result of the last operation.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.getresultmessage.php
+	 * @link    http://www.php.net/manual/en/memcached.getresultmessage.php
 	 *
 	 * @return  string      Message describing the result of the last Memcached operation.
 	 */
@@ -1386,7 +1391,7 @@ class WP_Object_Cache {
 	/**
 	 * Get server information by key.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.getserverbykey.php
+	 * @link    http://www.php.net/manual/en/memcached.getserverbykey.php
 	 *
 	 * @param   string      $server_key     The key identifying the server to store the value on.
 	 * @return  array                       Array with host, post, and weight on success, FALSE on failure.
@@ -1398,7 +1403,7 @@ class WP_Object_Cache {
 	/**
 	 * Get the list of servers in the pool.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.getserverlist.php
+	 * @link    http://www.php.net/manual/en/memcached.getserverlist.php
 	 *
 	 * @return  array       The list of all servers in the server pool.
 	 */
@@ -1409,7 +1414,7 @@ class WP_Object_Cache {
 	/**
      * Get server pool statistics.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.getstats.php
+	 * @link    http://www.php.net/manual/en/memcached.getstats.php
 	 *
 	 * @return  array       Array of server statistics, one entry per server.
 	 */
@@ -1420,7 +1425,7 @@ class WP_Object_Cache {
 	/**
 	 * Get server pool memcached version information.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.getversion.php
+	 * @link    http://www.php.net/manual/en/memcached.getversion.php
 	 *
 	 * @return  array       Array of server versions, one entry per server.
 	 */
@@ -1433,10 +1438,10 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.increment.php
 	 *
-	 * @param string    $key    The key under which to store the value.
-	 * @param int       $offset The amount by which to increment the item's value.
-	 * @param string    $group  The group value appended to the $key.
-	 * @return int|bool         Returns item's new value on success or FALSE on failure.
+	 * @param   string      $key        The key under which to store the value.
+	 * @param   int         $offset     The amount by which to increment the item's value.
+	 * @param   string      $group      The group value appended to the $key.
+	 * @return  int|bool                Returns item's new value on success or FALSE on failure.
 	 */
 	public function increment( $key, $offset = 1, $group = 'default' ) {
 		$derived_key = $this->buildKey( $key, $group );
@@ -1444,8 +1449,8 @@ class WP_Object_Cache {
 		// Increment values in no_mc_groups
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
-			// Only increment if the key already exists
-			if ( isset( $this->cache[$derived_key] ) ) {
+			// Only increment if the key already exists and the number is currently 0 or greater (mimics memcached behavior)
+			if ( isset( $this->cache[$derived_key] ) &&  $this->cache[$derived_key] >= 0 ) {
 
 				// If numeric, add; otherwise, consider it 0 and do nothing
 				if ( is_numeric( $this->cache[$derived_key] ) )
@@ -1463,7 +1468,12 @@ class WP_Object_Cache {
 			}
 		}
 
-		return $this->m->increment( $derived_key, $offset );
+		$result = $this->m->increment( $derived_key, $offset );
+
+		if ( false !== $result )
+			$this->add_to_internal_cache( $derived_key, $result );
+
+		return $result;
 	}
 
 	/**
