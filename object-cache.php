@@ -1491,7 +1491,10 @@ class WP_Object_Cache {
 		}
 
 		// Append to Memcached value
-		$result = $this->m->prepend( $derived_key, $value );
+		if ( $byKey )
+			$result = $this->m->prependByKey( $server_key, $derived_key, $value );
+		else
+			$result = $this->m->prepend( $derived_key, $value );
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
@@ -1523,13 +1526,15 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.replace.php
 	 *
-	 * @param string    $key        The key under which to store the value.
-	 * @param mixed     $value      The value to store.
-	 * @param string    $group      The group value appended to the $key.
-	 * @param int       $expiration The expiration time, defaults to 0.
-	 * @return bool                 Returns TRUE on success or FALSE on failure.
+	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @param   string      $key            The key under which to store the value.
+	 * @param   mixed       $value          The value to store.
+	 * @param   string      $group          The group value appended to the $key.
+	 * @param   bool        $byKey          True to store in internal cache by key; false to not store by key
+	 * @param   int         $expiration     The expiration time, defaults to 0.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
-	public function replace( $key, $value, $group = 'default', $expiration = 0 ) {
+	public function replace( $key, $value, $group = 'default', $expiration = 0, $server_key = '', $byKey = false ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
