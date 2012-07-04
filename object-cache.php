@@ -1211,6 +1211,10 @@ class WP_Object_Cache {
 	 * @return  bool|mixed                  Cached object value.
 	 */
 	public function getByKey( $server_key, $key, $group = 'default', $cache_cb = NULL, &$cas_token = NULL ) {
+		/**
+		 * Need to be careful how "get" is called. If you send $cache_cb, and $cas_token, it will hit memcached.
+		 * Only send those args if they were sent to this function.
+		 */
 		if ( func_num_args() > 3 )
 			return $this->get( $key, $group, $server_key, $cache_cb, $cas_token );
 		else
@@ -1259,11 +1263,12 @@ class WP_Object_Cache {
 	 *
 	 * @param   array           $keys       Array of keys to retrieve.
 	 * @param   string|array    $groups     If string, used for all keys. If arrays, corresponds with the $keys array.
+	 * @param   string          $server_key The key identifying the server to store the value on.
 	 * @param   null|array      $cas_tokens The variable to store the CAS tokens for the found items.
 	 * @param   int             $flags      The flags for the get operation.
 	 * @return  bool|array                  Returns the array of found items or FALSE on failure.
 	 */
-	public function getMulti( $keys, $groups = 'default', &$cas_tokens = NULL, $flags = NULL ) {
+	public function getMulti( $keys, $groups = 'default', $server_key = '', &$cas_tokens = NULL, $flags = NULL ) {
 		$derived_keys = $this->buildKeys( $keys, $groups );
 
 		/**
@@ -1271,8 +1276,11 @@ class WP_Object_Cache {
 		 * this will purposely ignore no_mc_groups values as they cannot handle CAS tokens or the special
 		 * flags; however, if the groups of groups contains a no_mc_group, this is bypassed.
 		 */
-		if ( func_num_args() > 2 && ! $this->contains_no_mc_group( $groups ) ) {
-			$values = $this->m->getMulti( $derived_keys, $cas_tokens, $flags );
+		if ( func_num_args() > 3 && ! $this->contains_no_mc_group( $groups ) ) {
+			if ( ! empty( $server_key ) )
+				$values = $this->m->getMultiByKey( $server_key, $derived_keys, $cas_tokens, $flags );
+			else
+				$values = $this->m->getMulti( $derived_keys, $cas_tokens, $flags );
 		} else {
 			$values = array();
 			$need_to_get = array();
@@ -1286,8 +1294,12 @@ class WP_Object_Cache {
 			}
 
 			// Get those keys not found in the runtime cache
-			if ( ! empty( $need_to_get ) )
-				$result = $this->m->getMulti( array_keys( $need_to_get ) );
+			if ( ! empty( $need_to_get ) ) {
+				if ( ! empty( $server_key ) )
+					$result = $this->m->getMultiByKey( $server_key, array_keys( $need_to_get ) );
+				else
+					$result = $this->m->getMulti( array_keys( $need_to_get ) );
+			}
 
 			// Merge with values found in runtime cache
 			if ( isset( $result ) && false !== $result )
@@ -1328,53 +1340,10 @@ class WP_Object_Cache {
 	 * @return  bool|array                  Returns the array of found items or FALSE on failure.
 	 */
 	public function getMultiByKey( $server_key, $keys, $groups = 'default', &$cas_tokens = NULL, $flags = NULL ) {
-		$derived_keys = $this->buildKeys( $keys, $groups );
-
-		/**
-		 * If either $cas_tokens, or $flags is set, must hit Memcached and bypass runtime cache. Note that
-		 * this will purposely ignore no_mc_groups values as they cannot handle CAS tokens or the special
-		 * flags; however, if the groups of groups contains a no_mc_group, this is bypassed.
-		 */
-		if ( func_num_args() > 2 && ! $this->contains_no_mc_group( $groups ) ) {
-			$values = $this->m->getMultiByKey( $server_key, $derived_keys, $cas_tokens, $flags );
-		} else {
-			$values = array();
-			$need_to_get = array();
-
-			// Pull out values from runtime cache, or mark for retrieval
-			foreach ( $derived_keys as $key ) {
-				if ( isset( $this->cache[$key] ) )
-					$values[$key] = $this->cache[$key];
-				else
-					$need_to_get[$key] = $key;
-			}
-
-			// Get those keys not found in the runtime cache
-			if ( ! empty( $need_to_get ) )
-				$result = $this->m->getMultiByKey( $server_key, array_keys( $need_to_get ) );
-
-			// Merge with values found in runtime cache
-			if ( isset( $result ) && false !== $result )
-				$values = array_merge( $values, $result );
-
-			// If order should be preserved, reorder now
-			if ( ! empty( $need_to_get ) && $flags === Memcached::GET_PRESERVE_ORDER ) {
-				$ordered_values = array();
-
-				foreach ( $derived_keys as $key ) {
-					if ( isset( $values[$key] ) )
-						$ordered_values[$key] = $values[$key];
-				}
-
-				$values = $ordered_values;
-				unset( $ordered_values );
-			}
-		}
-
-		// Add the values to the runtime cache
-		$this->cache = array_merge( $this->cache, $values );
-
-		return $values;
+		if ( func_num_args() > 3 )
+			return $this->getMulti( $keys, $groups, $server_key, $cas_tokens, $flags );
+		else
+			return $this->getMulti( $keys, $groups, $server_key );
 	}
 
 	/**
