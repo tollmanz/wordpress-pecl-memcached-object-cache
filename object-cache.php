@@ -292,13 +292,13 @@ function wp_cache_get( $key, $group = '', $cache_cb = null, &$cas_token = null )
 
 	/**
 	 * Handles situations where the $force argument for the wp_cache_get function in core may be used. It is only
-	 * used once in all of WP Core and since the functions does not do anything with it, it is pointless to support.
-	 * I'm caching the issue here to avoid conflicts.
+	 * used once in all of WP Core and since the function does not do anything with it, it is pointless to support.
+	 * I'm catching the issue here to avoid conflicts.
 	 */
 	if ( true === $cache_cb )
 		$cache_cb = null;
 
-	return $wp_object_cache->get( $key, $group, $cache_cb, $cas_token );
+	return $wp_object_cache->get( $key, $group, '', false, $cache_cb, $cas_token );
 }
 
 /**
@@ -788,9 +788,10 @@ class WP_Object_Cache {
 	 * @param   string      $group          The group value appended to the $key.
 	 * @param   int         $expiration     The expiration time, defaults to 0.
 	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @param   bool        $byKey          True to store in internal cache by key; false to not store by key
 	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
-	public function add( $key, $value, $group = 'default', $expiration = 0, $server_key = '' ) {
+	public function add( $key, $value, $group = 'default', $expiration = 0, $server_key = '', $byKey = false ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
@@ -800,19 +801,20 @@ class WP_Object_Cache {
 			if ( isset( $this->cache[$derived_key] ) )
 				return false;
 
-			$this->cache[$derived_key] = $value;
+			$this->add_to_internal_cache( $derived_key, $value );
+
 			return true;
 		}
 
 		// Save to Memcached
-		if ( ! empty( $server_key ) )
-			$result = $this->m->addByKey( $server_key, $derived_key, $value, absint( $expiration ) );
+		if ( $byKey )
+			$result = $this->m->addByKey( $server_key, $derived_key, $value, $expiration );
 		else
-			$result = $this->m->add( $derived_key, $value, absint( $expiration ) );
+			$result = $this->m->add( $derived_key, $value, $expiration );
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->cache[$derived_key] = $value;
+			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $result;
 	}
@@ -835,7 +837,7 @@ class WP_Object_Cache {
 	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function addByKey( $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
-		return $this->add( $key, $value, $group, $server_key, $expiration );
+		return $this->add( $key, $value, $group, $expiration, $server_key, true );
 	}
 
 	/**
@@ -888,9 +890,10 @@ class WP_Object_Cache {
 	 * @param   string      $value          Must be string as appending mixed values is not well-defined.
 	 * @param   string      $group          The group value appended to the $key.
 	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @param   bool        $byKey          True to store in internal cache by key; false to not store by key
 	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
-	public function append( $key, $value, $group = 'default', $server_key = '' ) {
+	public function append( $key, $value, $group = 'default', $server_key = '', $byKey = false ) {
 		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) )
 			return false;
 
@@ -903,7 +906,7 @@ class WP_Object_Cache {
 		}
 
 		// Append to Memcached value
-		if ( ! empty( $server_key ) )
+		if ( $byKey )
 			$result = $this->m->appendByKey( $server_key, $derived_key, $value );
 		else
 			$result = $this->m->append( $derived_key, $value );
@@ -932,7 +935,7 @@ class WP_Object_Cache {
 	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function appendByKey( $server_key, $key, $value, $group = 'default' ) {
-		return $this->append( $key, $value, $group, $server_key );
+		return $this->append( $key, $value, $group, $server_key, true );
 	}
 
 	/**
@@ -949,9 +952,10 @@ class WP_Object_Cache {
 	 * @param   string      $group          The group value appended to the $key.
 	 * @param   int         $expiration     The expiration time, defaults to 0.
 	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @param   bool        $byKey          True to store in internal cache by key; false to not store by key
 	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
-	public function cas( $cas_token, $key, $value, $group = 'default', $expiration = 0, $server_key = '' ) {
+	public function cas( $cas_token, $key, $value, $group = 'default', $expiration = 0, $server_key = '', $byKey = false ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		/**
@@ -960,19 +964,19 @@ class WP_Object_Cache {
 		 * operation is treated as a normal "add" for no_mc_groups.
 		 */
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->cache[$derived_key] = $value;
+			$this->add_to_internal_cache( $derived_key, $value );
 			return true;
 		}
 
 		// Save to Memcached
-		if ( ! empty( $server_key ) )
+		if ( $byKey )
 			$result = $this->m->casByKey( $cas_token, $server_key, $derived_key, $value, absint( $expiration ) );
 		else
 			$result = $this->m->cas( $cas_token, $derived_key, $value, absint( $expiration ) );
 
 		// Store in runtime cache if cas was successful
 		if ( false !== $result )
-			$this->cache[$derived_key] = $value;
+			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $result;
 	}
@@ -994,7 +998,7 @@ class WP_Object_Cache {
 	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function casByKey( $cas_token, $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
-		return $this->cas( $cas_token, $key, $value, $group, $expiration, $server_key );
+		return $this->cas( $cas_token, $key, $value, $group, $expiration, $server_key, true );
 	}
 
 	/**
@@ -1045,21 +1049,28 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.delete.php
 	 *
-	 * @param string    $key    The key under which to store the value.
-	 * @param string    $group  The group value appended to the $key.
-	 * @param int       $time   The amount of time the server will wait to delete the item in seconds.
-	 * @return bool             Returns TRUE on success or FALSE on failure.
+	 * @param   string      $key        The key under which to store the value.
+	 * @param   string      $group      The group value appended to the $key.
+	 * @param   int         $time       The amount of time the server will wait to delete the item in seconds.
+	 * @param   string      $server_key The key identifying the server to store the value on.
+	 * @param   bool        $byKey      True to store in internal cache by key; false to not store by key
+	 * @return  bool                    Returns TRUE on success or FALSE on failure.
 	 */
-	public function delete( $key, $group = 'default', $time = 0 ) {
+	public function delete( $key, $group = 'default', $time = 0, $server_key = '', $byKey = false ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// Remove from no_mc_groups array
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			unset( $this->cache[$derived_key] );
+			if ( isset( $this->cache[$derived_key] ) )
+				unset( $this->cache[$derived_key] );
+
 			return true;
 		}
 
-		$result = $this->m->delete( $derived_key, $time );
+		if ( $byKey )
+			$result = $this->m->deleteByKey( $server_key, $derived_key, $time );
+		else
+			$result = $this->m->delete( $derived_key, $time );
 
 		if ( false !== $result )
 			unset( $this->cache[$derived_key] );
@@ -1084,20 +1095,7 @@ class WP_Object_Cache {
 	 * @return  bool                    Returns TRUE on success or FALSE on failure.
 	 */
 	public function deleteByKey( $server_key, $key, $group = 'default', $time = 0 ) {
-		$derived_key = $this->buildKey( $key, $group );
-
-		// Remove from no_mc_groups array
-		if ( in_array( $group, $this->no_mc_groups ) ) {
-			unset( $this->cache[$derived_key] );
-			return true;
-		}
-
-		$result = $this->m->deleteByKey( $server_key, $derived_key, $time );
-
-		if ( false !== $result )
-			unset( $this->cache[$derived_key] );
-
-		return $result;
+		return $this->delete( $key, $group, $time, $server_key, true );
 	}
 
 	/**
@@ -1154,37 +1152,38 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.get.php
 	 *
-	 * @param   string        $key          The key under which to store the value.
-	 * @param   string        $group        The group value appended to the $key.
-	 * @param   string        $server_key   The key identifying the server to store the value on.
-	 * @param   null|callable $cache_cb     Read-through caching callback.
-	 * @param   null|float    $cas_token    The variable to store the CAS token in.
+	 * @param   string          $key        The key under which to store the value.
+	 * @param   string          $group      The group value appended to the $key.
+	 * @param   string          $server_key The key identifying the server to store the value on.
+	 * @param   bool            $byKey      True to store in internal cache by key; false to not store by key
+	 * @param   null|callable   $cache_cb   Read-through caching callback.
+	 * @param   null|float      $cas_token  The variable to store the CAS token in.
 	 * @return  bool|mixed                  Cached object value.
 	 */
-	public function get( $key, $group = 'default', $server_key = '', $cache_cb = NULL, &$cas_token = NULL ) {
+	public function get( $key, $group = 'default', $server_key = '', $byKey = false, $cache_cb = NULL, &$cas_token = NULL ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
-		if ( func_num_args() > 3 && ! in_array( $group, $this->no_mc_groups ) ) {
-			if ( ! empty( $server_key ) )
-				$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
-			else
+		if ( func_num_args() > 4 && ! in_array( $group, $this->no_mc_groups ) ) {
+			if ( $byKey )
 				$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
+			else
+				$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$derived_key] ) ) {
 				return $this->cache[$derived_key];
 			} elseif ( in_array( $group, $this->no_mc_groups ) ) {
 				return false;
 			} else {
-				if ( ! empty( $server_key ) )
-					$value = $this->m->get( $derived_key );
-				else
+				if ( $byKey )
 					$value = $this->m->getByKey( $server_key, $derived_key );
+				else
+					$value = $this->m->get( $derived_key );
 			}
 		}
 
 		if ( Memcached::RES_NOTFOUND != $this->getResultCode() )
-			$this->cache[$derived_key] = $value;
+			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $value;
 	}
@@ -1216,9 +1215,9 @@ class WP_Object_Cache {
 		 * Only send those args if they were sent to this function.
 		 */
 		if ( func_num_args() > 3 )
-			return $this->get( $key, $group, $server_key, $cache_cb, $cas_token );
+			return $this->get( $key, $group, $server_key, true, $cache_cb, $cas_token );
 		else
-			return $this->get( $key, $group, $server_key );
+			return $this->get( $key, $group, $server_key, true );
 	}
 
 	/**
@@ -1340,6 +1339,10 @@ class WP_Object_Cache {
 	 * @return  bool|array                  Returns the array of found items or FALSE on failure.
 	 */
 	public function getMultiByKey( $server_key, $keys, $groups = 'default', &$cas_tokens = NULL, $flags = NULL ) {
+		/**
+		 * Need to be careful how "getMulti" is called. If you send $cache_cb, and $cas_token, it will hit memcached.
+		 * Only send those args if they were sent to this function.
+		 */
 		if ( func_num_args() > 3 )
 			return $this->getMulti( $keys, $groups, $server_key, $cas_tokens, $flags );
 		else
@@ -1386,7 +1389,7 @@ class WP_Object_Cache {
 	 * @link http://www.php.net/manual/en/memcached.getserverbykey.php
 	 *
 	 * @param   string      $server_key     The key identifying the server to store the value on.
-	 * @return  array                        Array with host, post, and weight on success, FALSE on failure.
+	 * @return  array                       Array with host, post, and weight on success, FALSE on failure.
 	 */
 	public function getServerByKey( $server_key ) {
 		return $this->m->getServerByKey( $server_key );
@@ -1612,27 +1615,32 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.set.php
 	 *
-	 * @param string    $key        The key under which to store the value.
-	 * @param mixed     $value      The value to store.
-	 * @param string    $group      The group value appended to the $key.
-	 * @param int       $expiration The expiration time, defaults to 0.
-	 * @return bool                 Returns TRUE on success or FALSE on failure.
+	 * @param   string      $key        The key under which to store the value.
+	 * @param   mixed       $value      The value to store.
+	 * @param   string      $group      The group value appended to the $key.
+	 * @param   int         $expiration The expiration time, defaults to 0.
+	 * @param   string      $server_key The key identifying the server to store the value on.
+	 * @param   bool        $byKey      True to store in internal cache by key; false to not store by key
+	 * @return  bool                    Returns TRUE on success or FALSE on failure.
 	 */
-	public function set( $key, $value, $group = 'default', $expiration = 0 ) {
+	public function set( $key, $value, $group = 'default', $expiration = 0, $server_key = '', $byKey = false ) {
 		$derived_key = $this->buildKey( $key, $group );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->cache[$derived_key] = $value;
+			$this->add_to_internal_cache( $derived_key, $value );
 			return true;
 		}
 
 		// Save to Memcached
-		$result = $this->m->set( $derived_key, $value, absint( $expiration ) );
+		if ( $byKey )
+			$result = $this->m->setByKey( $server_key, $derived_key, $value, absint( $expiration ) );
+		else
+			$result = $this->m->set( $derived_key, $value, absint( $expiration ) );
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
-			$this->cache[$derived_key] = $value;
+			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $result;
 	}
@@ -1652,22 +1660,7 @@ class WP_Object_Cache {
 	 * @return bool                     Returns TRUE on success or FALSE on failure.
 	 */
 	public function setByKey( $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
-		$derived_key = $this->buildKey( $key, $group );
-
-		// If group is a non-Memcached group, save to runtime cache, not Memcached
-		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->cache[$derived_key] = $value;
-			return true;
-		}
-
-		// Save to Memcached
-		$result = $this->m->setByKey( $server_key, $derived_key, $value, absint( $expiration ) );
-
-		// Store in runtime cache if add was successful
-		if ( false !== $result )
-			$this->cache[$derived_key] = $value;
-
-		return $result;
+		return $this->set( $key, $value, $group, $expiration, $server_key, true );
 	}
 
 	/**
@@ -1838,7 +1831,17 @@ class WP_Object_Cache {
 	}
 
 	/**
-	 * Determines if a no_mc_group exists in a groups of groups.
+	 * Simple wrapper for saving object to the internal cache.
+	 *
+	 * @param   string      $derived_key    Key to save value under.
+	 * @param   mixed       $value          Object value.
+	 */
+	public function add_to_internal_cache( $derived_key, $value ) {
+		$this->cache[$derived_key] = $value;
+	}
+
+	/**
+	 * Determines if a no_mc_group exists in a group of groups.
 	 *
 	 * @param   mixed   $groups     The groups to search.
 	 * @return  bool                True if a no_mc_group is present; false if a no_mc_group is not present.
