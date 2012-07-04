@@ -1549,7 +1549,10 @@ class WP_Object_Cache {
 		}
 
 		// Save to Memcached
-		$result = $this->m->replace( $derived_key, $value, absint( $expiration ) );
+		if ( $byKey )
+			$result = $this->m->replaceByKey( $server_key, $derived_key, $value, absint( $expiration ) );
+		else
+			$result = $this->m->replace( $derived_key, $value, absint( $expiration ) );
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
@@ -1566,35 +1569,15 @@ class WP_Object_Cache {
 	 *
 	 * @link http://www.php.net/manual/en/memcached.addbykey.php
 	 *
-	 * @param string    $server_key     The key identifying the server to store the value on.
-	 * @param string    $key            The key under which to store the value.
-	 * @param mixed     $value          The value to store.
-	 * @param string    $group          The group value appended to the $key.
-	 * @param int       $expiration     The expiration time, defaults to 0.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @param   string      $key            The key under which to store the value.
+	 * @param   mixed       $value          The value to store.
+	 * @param   string      $group          The group value appended to the $key.
+	 * @param   int         $expiration     The expiration time, defaults to 0.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function replaceByKey( $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
-		$derived_key = $this->buildKey( $key, $group );
-
-		// If group is a non-Memcached group, save to runtime cache, not Memcached
-		if ( in_array( $group, $this->no_mc_groups ) ) {
-
-			// Replace won't save unless the key already exists; mimic this behavior here
-			if ( ! isset( $this->cache[$derived_key] ) )
-				return false;
-
-			$this->cache[$derived_key] = $value;
-			return true;
-		}
-
-		// Save to Memcached
-		$result = $this->m->replaceByKey( $server_key, $derived_key, $value, absint( $expiration ) );
-
-		// Store in runtime cache if add was successful
-		if ( false !== $result )
-			$this->cache[$derived_key] = $value;
-
-		return $result;
+		return $this->replace( $key, $value, $group, $expiration, $server_key, true );
 	}
 
 	/**
