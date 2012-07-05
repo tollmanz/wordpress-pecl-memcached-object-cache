@@ -1718,11 +1718,11 @@ class WP_Object_Cache {
 	/**
 	 * Set a Memcached option.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.setoption.php
+	 * @link    http://www.php.net/manual/en/memcached.setoption.php
 	 *
-	 * @param int       $option Option name.
-	 * @param mixed     $value  Option value.
-	 * @return bool             Returns TRUE on success or FALSE on failure.
+	 * @param   int         $option     Option name.
+	 * @param   mixed       $value      Option value.
+	 * @return  bool                Returns TRUE on success or FALSE on failure.
 	 */
 	public function setOption( $option, $value ) {
 		return $this->m->setOption( $option, $value );
@@ -1734,9 +1734,9 @@ class WP_Object_Cache {
 	 * @author  Ryan Boren   This function is inspired by the original WP Memcached Object cache.
 	 * @link    http://wordpress.org/extend/plugins/memcached/
 	 *
-	 * @param string    $key    The key under which to store the value.
-	 * @param string    $group  The group value appended to the $key.
-	 * @return string
+	 * @param   string      $key        The key under which to store the value.
+	 * @param   string      $group      The group value appended to the $key.
+	 * @return  string
 	 */
 	public function buildKey( $key, $group = 'default' ) {
 		if ( empty( $group ) )
@@ -1762,9 +1762,9 @@ class WP_Object_Cache {
 	 * than $keys, the method will return an empty array. This method is primarily a helper method for methods
 	 * that call memcached with an array of keys.
 	 *
-	 * @param string|array  $keys   Key(s) to merge with group(s).
-	 * @param string|array  $groups Group(s) to merge with key(s).
-	 * @return array                Array that combines keys and groups into a single set of memcached keys.
+	 * @param   string|array    $keys       Key(s) to merge with group(s).
+	 * @param   string|array    $groups     Group(s) to merge with key(s).
+	 * @return  array                       Array that combines keys and groups into a single set of memcached keys.
 	 */
 	public function buildKeys( $keys, $groups = 'default' ) {
 		$derived_keys = array();
@@ -1834,7 +1834,7 @@ class WP_Object_Cache {
 	 * @author  Ryan Boren   This function comes straight from the original WP Memcached Object cache
 	 * @link    http://wordpress.org/extend/plugins/memcached/
 	 *
-	 * @param   array   $groups Array of groups.
+	 * @param   array       $groups     Array of groups.
 	 * @return  void
 	 */
 	public function add_global_groups( $groups ) {
@@ -1851,7 +1851,7 @@ class WP_Object_Cache {
 	 * @author  Ryan Boren   This function comes straight from the original WP Memcached Object cache
 	 * @link    http://wordpress.org/extend/plugins/memcached/
 	 *
-	 * @param   array   $groups Array of groups.
+	 * @param   array       $groups     Array of groups.
 	 * @return  void
 	 */
 	public function add_non_persistent_groups( $groups ) {
