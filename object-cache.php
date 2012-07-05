@@ -371,7 +371,7 @@ function wp_cache_get_delayed_by_key( $server_key, $keys, $groups = '', $with_ca
  */
 function wp_cache_get_multi( $keys, $groups = '', &$cas_tokens = NULL, $flags = NULL ) {
 	global $wp_object_cache;
-	return $wp_object_cache->getMulti( $keys, $groups, $cas_tokens, $flags );
+	return $wp_object_cache->getMulti( $keys, $groups, '', $cas_tokens, $flags );
 }
 
 /**
@@ -600,6 +600,25 @@ function wp_cache_set( $key, $value, $group = '', $expiration = 0 ) {
 }
 
 /**
+ * Sets a value in cache.
+ *
+ * The value is set whether or not this key already exists in memcached.
+ *
+ * @link http://www.php.net/manual/en/memcached.set.php
+ *
+ * @param string    $server_key     The key identifying the server to store the value on.
+ * @param string    $key            The key under which to store the value.
+ * @param mixed     $value          The value to store.
+ * @param string    $group          The group value appended to the $key.
+ * @param int       $expiration     The expiration time, defaults to 0.
+ * @return bool                     Returns TRUE on success or FALSE on failure.
+ */
+function wp_cache_set_by_key( $server_key, $key, $value, $group = '', $expiration = 0 ) {
+	global $wp_object_cache;
+	return $wp_object_cache->setByKey( $server_key, $key, $value, $group, $expiration );
+}
+
+/**
  * Set multiple values to cache at once.
  *
  * By sending an array of $items to this function, all values are saved at once to
@@ -655,8 +674,8 @@ function wp_cache_set_option( $option, $value ) {
 /**
  * Sets up Object Cache Global and assigns it.
  *
- * @global WP_Object_Cache $wp_object_cache WordPress Object Cache
- * @return void
+ * @global  WP_Object_Cache     $wp_object_cache    WordPress Object Cache
+ * @return  void
  */
 function wp_cache_init() {
 	global $wp_object_cache;
@@ -666,8 +685,8 @@ function wp_cache_init() {
 /**
  * Adds a group or set of groups to the list of non-persistent groups.
  *
- * @param string|array $groups A group or an array of groups to add.
- * @return void
+ * @param   string|array    $groups     A group or an array of groups to add.
+ * @return  void
  */
 function wp_cache_add_global_groups( $groups ) {
 	global $wp_object_cache;
@@ -677,8 +696,8 @@ function wp_cache_add_global_groups( $groups ) {
 /**
  * Adds a group or set of groups to the list of non-Memcached groups.
  *
- * @param string|array $groups A group or an array of groups to add.
- * @return void
+ * @param   string|array    $groups     A group or an array of groups to add.
+ * @return  void
  */
 function wp_cache_add_non_persistent_groups( $groups ) {
 	global $wp_object_cache;
