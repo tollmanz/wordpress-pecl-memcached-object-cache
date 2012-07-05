@@ -1632,14 +1632,14 @@ class WP_Object_Cache {
 	 *
 	 * The value is set whether or not this key already exists in memcached.
 	 *
-	 * @link http://www.php.net/manual/en/memcached.setbykey.php
+	 * @link    http://www.php.net/manual/en/memcached.setbykey.php
 	 *
-	 * @param string    $server_key     The key identifying the server to store the value on.
-	 * @param string    $key            The key under which to store the value.
-	 * @param mixed     $value          The value to store.
-	 * @param string    $group          The group value appended to the $key.
-	 * @param int       $expiration     The expiration time, defaults to 0.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @param   string      $server_key     The key identifying the server to store the value on.
+	 * @param   string      $key            The key under which to store the value.
+	 * @param   mixed       $value          The value to store.
+	 * @param   string      $group          The group value appended to the $key.
+	 * @param   int         $expiration     The expiration time, defaults to 0.
+	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
 	public function setByKey( $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
 		return $this->set( $key, $value, $group, $expiration, $server_key, true );
@@ -1654,31 +1654,38 @@ class WP_Object_Cache {
 	 * are merged with the $groups array/string value via buildKeys to determine the
 	 * final key for the object.
 	 *
-	 * @param array         $items      An array of key/value pairs to store on the server.
-	 * @param string|array  $groups     Group(s) to merge with key(s) in $items.
-	 * @param int           $expiration The expiration time, defaults to 0.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @link    http://www.php.net/manual/en/memcached.setmulti.php
+	 *
+	 * @param   array           $items          An array of key/value pairs to store on the server.
+	 * @param   string|array    $groups         Group(s) to merge with key(s) in $items.
+	 * @param   int             $expiration     The expiration time, defaults to 0.
+	 * @param   string          $server_key     The key identifying the server to store the value on.
+	 * @param   bool            $byKey          True to store in internal cache by key; false to not store by key
+	 * @return  bool                            Returns TRUE on success or FALSE on failure.
 	 */
-	public function setMulti( array $items, $groups = 'default', $expiration = 0 ) {
+	public function setMulti( $items, $groups = 'default', $expiration = 0, $server_key = '', $byKey = false ) {
 		// Build final keys and replace $items keys with the new keys
 		$derived_keys = $this->buildKeys( array_keys( $items ), $groups );
 		$derived_items = array_combine( $derived_keys, $items );
 
 		// Do not add to memcached if in no_mc_groups
-		foreach ( $derived_items as $key => $value ) {
+		foreach ( $derived_items as $derived_key => $value ) {
 
 			// Get the individual item's group
-			$key_pieces = explode( ':', $key );
+			$key_pieces = explode( ':', $derived_key );
 
 			// If group is a non-Memcached group, save to runtime cache, not Memcached
 			if ( in_array( $key_pieces[1], $this->no_mc_groups ) ) {
-				$this->cache[$key] = $value;
-				unset( $derived_items[$key] );
+				$this->add_to_internal_cache( $derived_key, $value );
+				unset( $derived_items[$derived_key] );
 			}
 		}
 
 		// Save to memcached
-		$result = $this->m->setMulti( $derived_items, absint( $expiration ) );
+		if ( $byKey )
+			$result = $this->m->setMultiByKey( $server_key, $derived_items, absint( $expiration ) );
+		else
+			$result = $this->m->setMulti( $derived_items, absint( $expiration ) );
 
 		// Store in runtime cache if add was successful
 		if ( false !== $result )
@@ -1696,38 +1703,16 @@ class WP_Object_Cache {
 	 * are merged with the $groups array/string value via buildKeys to determine the
 	 * final key for the object.
 	 *
-	 * @param string        $server_key The key identifying the server to store the value on.
-	 * @param array         $items      An array of key/value pairs to store on the server.
-	 * @param string|array  $groups     Group(s) to merge with key(s) in $items.
-	 * @param int           $expiration The expiration time, defaults to 0.
-	 * @return bool                     Returns TRUE on success or FALSE on failure.
+	 * @link    http://www.php.net/manual/en/memcached.setmultibykey.php
+	 *
+	 * @param   string          $server_key     The key identifying the server to store the value on.
+	 * @param   array           $items          An array of key/value pairs to store on the server.
+	 * @param   string|array    $groups         Group(s) to merge with key(s) in $items.
+	 * @param   int             $expiration     The expiration time, defaults to 0.
+	 * @return  bool                            Returns TRUE on success or FALSE on failure.
 	 */
 	public function setMultiByKey( $server_key, $items, $groups = 'default', $expiration = 0 ) {
-		// Build final keys and replace $items keys with the new keys
-		$derived_keys = $this->buildKeys( array_keys( $items ), $groups );
-		$derived_items = array_combine( $derived_keys, $items );
-
-		// Do not add to memcached if in no_mc_groups
-		foreach ( $derived_items as $key => $value ) {
-
-			// Get the individual item's group
-			$key_pieces = explode( ':', $key );
-
-			// If group is a non-Memcached group, save to runtime cache, not Memcached
-			if ( in_array( $key_pieces[1], $this->no_mc_groups ) ) {
-				$this->cache[$key] = $value;
-				unset( $derived_items[$key] );
-			}
-		}
-
-		// Save to memcached
-		$result = $this->m->setMultiByKey( $server_key, $derived_items, absint( $expiration ) );
-
-		// Store in runtime cache if add was successful
-		if ( false !== $result )
-			$this->cache = array_merge( $this->cache, $derived_items );
-
-		return $result;
+		return $this->setMulti( $items, $groups, $expiration, $server_key, true );
 	}
 
 	/**
