@@ -861,7 +861,7 @@ class WP_Object_Cache {
 			$result = $this->m->add( $derived_key, $value, $expiration );
 
 		// Store in runtime cache if add was successful
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $result;
@@ -970,7 +970,7 @@ class WP_Object_Cache {
 			$result = $this->m->append( $derived_key, $value );
 
 		// Store in runtime cache if add was successful
-		if ( false !== $result ) {
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() ) {
 			// Match types; memcached matches appended value type to original value type; mimic this here
 			$type = gettype( $this->cache[$derived_key] );
 			settype( $value, $type );
@@ -1043,7 +1043,7 @@ class WP_Object_Cache {
 			$result = $this->m->cas( $cas_token, $derived_key, $value, absint( $expiration ) );
 
 		// Store in runtime cache if cas was successful
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $result;
@@ -1106,7 +1106,7 @@ class WP_Object_Cache {
 
 		$result = $this->m->decrement( $derived_key, $offset );
 
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->add_to_internal_cache( $derived_key, $result );
 
 		return $result;
@@ -1145,7 +1145,7 @@ class WP_Object_Cache {
 		else
 			$result = $this->m->delete( $derived_key, $time );
 
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			unset( $this->cache[$derived_key] );
 
 		return $result;
@@ -1205,7 +1205,7 @@ class WP_Object_Cache {
 		$result = $this->m->flush( $delay );
 
 		// Only reset the runtime cache if memcached was properly flushed
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->cache = array();
 
 		return $result;
@@ -1374,7 +1374,7 @@ class WP_Object_Cache {
 			}
 
 			// Merge with values found in runtime cache
-			if ( isset( $result ) && false !== $result )
+			if ( isset( $result ) && Memcached::RES_SUCCESS === $this->getResultCode() )
 				$values = array_merge( $values, $result );
 
 			// If order should be preserved, reorder now
@@ -1538,7 +1538,7 @@ class WP_Object_Cache {
 
 		$result = $this->m->increment( $derived_key, $offset );
 
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->add_to_internal_cache( $derived_key, $result );
 
 		return $result;
@@ -1575,7 +1575,7 @@ class WP_Object_Cache {
 			$result = $this->m->prepend( $derived_key, $value );
 
 		// Store in runtime cache if add was successful
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->cache[$derived_key] = (string) $value . $this->cache[$derived_key];
 
 		return $result;
@@ -1633,7 +1633,7 @@ class WP_Object_Cache {
 			$result = $this->m->replace( $derived_key, $value, absint( $expiration ) );
 
 		// Store in runtime cache if add was successful
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $result;
@@ -1689,7 +1689,7 @@ class WP_Object_Cache {
 			$result = $this->m->set( $derived_key, $value, absint( $expiration ) );
 
 		// Store in runtime cache if add was successful
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $result;
@@ -1756,7 +1756,7 @@ class WP_Object_Cache {
 			$result = $this->m->setMulti( $derived_items, absint( $expiration ) );
 
 		// Store in runtime cache if add was successful
-		if ( false !== $result )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->cache = array_merge( $this->cache, $derived_items );
 
 		return $result;
