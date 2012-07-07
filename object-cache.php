@@ -1255,7 +1255,7 @@ class WP_Object_Cache {
 			}
 		}
 
-		if ( Memcached::RES_NOTFOUND != $this->getResultCode() )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->add_to_internal_cache( $derived_key, $value );
 
 		return $value;
