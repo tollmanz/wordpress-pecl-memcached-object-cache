@@ -321,7 +321,7 @@ function wp_cache_get( $key, $group = '', $cache_cb = null, &$cas_token = null )
  * @param null|float    $cas_token  The variable to store the CAS token in.
  * @return bool|mixed               Cached object value.
  */
-function wp_cache_get_by_key( $server_key, $key, $group = '', $cache_cb = NULL, $cas_token = NULL ) {
+function wp_cache_get_by_key( $server_key, $key, $group = '', $cache_cb = NULL, &$cas_token = NULL ) {
 	global $wp_object_cache;
 
 	if ( func_num_args() > 3 )
