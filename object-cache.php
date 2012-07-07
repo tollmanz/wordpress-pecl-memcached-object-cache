@@ -378,7 +378,11 @@ function wp_cache_get_delayed_by_key( $server_key, $keys, $groups = '', $with_ca
  */
 function wp_cache_get_multi( $keys, $groups = '', &$cas_tokens = NULL, $flags = NULL ) {
 	global $wp_object_cache;
-	return $wp_object_cache->getMulti( $keys, $groups, '', $cas_tokens, $flags );
+
+	if ( func_num_args() > 2 )
+		return $wp_object_cache->getMulti( $keys, $groups, '', $cas_tokens, $flags );
+	else
+		return $wp_object_cache->getMulti( $keys, $groups );
 }
 
 /**
@@ -397,7 +401,11 @@ function wp_cache_get_multi( $keys, $groups = '', &$cas_tokens = NULL, $flags = 
  */
 function wp_cache_get_multi_by_key( $server_key, $keys, $groups = '', &$cas_tokens = NULL, $flags = NULL ) {
 	global $wp_object_cache;
-	return $wp_object_cache->getMultiByKey( $server_key, $keys, $groups, $cas_tokens, $flags );
+
+	if ( func_num_args() > 3 )
+		return $wp_object_cache->getMultiByKey( $server_key, $keys, $groups, $cas_tokens, $flags );
+	else
+		return $wp_object_cache->getMultiByKey( $server_key, $keys, $groups );
 }
 
 /**
