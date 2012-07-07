@@ -74,10 +74,17 @@ function wp_cache_add_servers( $servers ) {
 /**
  * Append data to an existing item.
  *
+ * This method should throw an error if it is used with compressed data. This
+ * is an expected behavior. Memcached casts the value to be appended to the initial value to the
+ * type of the initial value. Be careful as this leads to unexpected behavior at times. Due to
+ * how memcached treats types, the behavior has been mimicked in the internal cache to produce
+ * similar results and improve consistency. It is recommend that appends only occur with data of
+ * the same type.
+ *
  * @link http://www.php.net/manual/en/memcached.append.php
  *
  * @param string    $key    The key under which to store the value.
- * @param string    $value  Must be string as appending mixed values is not well-defined
+ * @param mixed     $value  Must be string as appending mixed values is not well-defined
  * @param string    $group  The group value appended to the $key.
  * @return bool             Returns TRUE on success or FALSE on failure.
  */
@@ -89,11 +96,18 @@ function wp_cache_append( $key, $value, $group = '' ) {
 /**
  * Append data to an existing item by server key.
  *
+ * This method should throw an error if it is used with compressed data. This
+ * is an expected behavior. Memcached casts the value to be appended to the initial value to the
+ * type of the initial value. Be careful as this leads to unexpected behavior at times. Due to
+ * how memcached treats types, the behavior has been mimicked in the internal cache to produce
+ * similar results and improve consistency. It is recommend that appends only occur with data of
+ * the same type.
+ *
  * @link http://www.php.net/manual/en/memcached.appendbykey.php
  *
  * @param string    $server_key     The key identifying the server to store the value on.
  * @param string    $key            The key under which to store the value.
- * @param string    $value          Must be string as appending mixed values is not well-defined
+ * @param mixed     $value          Must be string as appending mixed values is not well-defined
  * @param string    $group          The group value appended to the $key.
  * @return bool                     Returns TRUE on success or FALSE on failure.
  */
@@ -913,15 +927,17 @@ class WP_Object_Cache {
 	/**
 	 * Append data to an existing item.
 	 *
-	 * Note that the ints/floats will become strings when using this method. This method
-	 * does not work with mixed values, so everything is casted to string. Also note
-	 * that this method should throw an error if it is used with compressed data. This
-	 * is an expected behavior.
+	 * This method should throw an error if it is used with compressed data. This
+	 * is an expected behavior. Memcached casts the value to be appended to the initial value to the
+	 * type of the initial value. Be careful as this leads to unexpected behavior at times. Due to
+	 * how memcached treats types, the behavior has been mimicked in the internal cache to produce
+	 * similar results and improve consistency. It is recommend that appends only occur with data of
+	 * the same type.
 	 *
 	 * @link    http://www.php.net/manual/en/memcached.append.php
 	 *
 	 * @param   string      $key            The key under which to store the value.
-	 * @param   string      $value          Must be string as appending mixed values is not well-defined.
+	 * @param   mixed       $value          Must be string as appending mixed values is not well-defined.
 	 * @param   string      $group          The group value appended to the $key.
 	 * @param   string      $server_key     The key identifying the server to store the value on.
 	 * @param   bool        $byKey          True to store in internal cache by key; false to not store by key
@@ -971,16 +987,18 @@ class WP_Object_Cache {
 	/**
 	 * Append data to an existing item by server key.
 	 *
-	 * Note that the ints/floats will become strings when using this method. This method
-	 * does not work with mixed values, so everything is casted to string. Also note
-	 * that this method should throw an error if it is used with compressed data. This
-	 * is an expected behavior.
+	 * This method should throw an error if it is used with compressed data. This
+	 * is an expected behavior. Memcached casts the value to be appended to the initial value to the
+	 * type of the initial value. Be careful as this leads to unexpected behavior at times. Due to
+	 * how memcached treats types, the behavior has been mimicked in the internal cache to produce
+	 * similar results and improve consistency. It is recommend that appends only occur with data of
+	 * the same type.
 	 *
 	 * @link    http://www.php.net/manual/en/memcached.appendbykey.php
 	 *
 	 * @param   string      $server_key     The key identifying the server to store the value on.
 	 * @param   string      $key            The key under which to store the value.
-	 * @param   string      $value          Must be string as appending mixed values is not well-defined
+	 * @param   mixed       $value          Must be string as appending mixed values is not well-defined
 	 * @param   string      $group          The group value appended to the $key.
 	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
