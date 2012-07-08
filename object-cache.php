@@ -967,6 +967,9 @@ class WP_Object_Cache {
 
 		// If group is a non-Memcached group, append to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
+			if ( ! isset( $this->cache[$derived_key] ) )
+				return false;
+
 			$combined = $this->combine_values( $this->cache[$derived_key], $value, 'app' );
 			$this->add_to_internal_cache( $derived_key, $combined );
 			return true;
@@ -1575,6 +1578,9 @@ class WP_Object_Cache {
 
 		// If group is a non-Memcached group, prepend to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
+			if ( ! isset( $this->cache[$derived_key] ) )
+				return false;
+
 			$combined = $this->combine_values( $this->cache[$derived_key], $value, 'pre' );
 			$this->add_to_internal_cache( $derived_key, $combined );
 			return true;
