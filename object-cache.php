@@ -953,10 +953,8 @@ class WP_Object_Cache {
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Match types; memcached matches appended value type to original value type; mimic this here
-			$type = gettype( $this->cache[$derived_key] );
-			settype( $value, $type );
-
 			$combined = $this->cache[$derived_key] . $value;
+			$type = gettype( $this->cache[$derived_key] );
 			settype( $combined, $type );
 
 			$this->add_to_internal_cache( $derived_key, $combined );
@@ -972,10 +970,8 @@ class WP_Object_Cache {
 		// Store in runtime cache if add was successful
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() ) {
 			// Match types; memcached matches appended value type to original value type; mimic this here
-			$type = gettype( $this->cache[$derived_key] );
-			settype( $value, $type );
-
 			$combined = $this->cache[$derived_key] . $value;
+			$type = gettype( $this->cache[$derived_key] );
 			settype( $combined, $type );
 
 			$this->add_to_internal_cache( $derived_key, $combined );
@@ -1564,7 +1560,12 @@ class WP_Object_Cache {
 
 		// If group is a non-Memcached group, prepend to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			$this->cache[$derived_key] = (string) $value . $this->cache[$derived_key];
+			// Match types; memcached matches original value type to prepended value; mimic this here
+			$combined = $value . $this->cache[$derived_key];
+			$type = gettype( $value );
+			settype( $combined, $type );
+
+			$this->add_to_internal_cache( $derived_key, $combined );
 			return true;
 		}
 
@@ -1575,8 +1576,14 @@ class WP_Object_Cache {
 			$result = $this->m->prepend( $derived_key, $value );
 
 		// Store in runtime cache if add was successful
-		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
-			$this->cache[$derived_key] = (string) $value . $this->cache[$derived_key];
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() ) {
+			// Match types; memcached matches original value type to prepended value; mimic this here
+			$combined = $value . $this->cache[$derived_key];
+			$type = gettype( $value );
+			settype( $combined, $type );
+
+			$this->add_to_internal_cache( $derived_key, $combined );
+		}
 
 		return $result;
 	}
