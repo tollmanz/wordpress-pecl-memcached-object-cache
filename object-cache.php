@@ -543,6 +543,14 @@ function wp_cache_incr( $key, $offset = 1, $group = '' ) {
 /**
  * Prepend data to an existing item.
  *
+ * This method should throw an error if it is used with compressed data. This is an expected behavior.
+ * Memcached casts the value to be prepended to the initial value to the type of the initial value. Be
+ * careful as this leads to unexpected behavior at times. For instance, prepending (float) 45.23 to
+ * (int) 23 will result in 45, because the value is first combined (45.2323) then cast to "integer"
+ * (the original value), which will be (int) 45. Due to how memcached treats types, the behavior has been
+ * mimicked in the internal cache to produce similar results and improve consistency. It is recommend
+ * that prepends only occur with data of the same type.
+ *
  * @link http://www.php.net/manual/en/memcached.prepend.php
  *
  * @param string    $key    The key under which to store the value.
@@ -557,6 +565,14 @@ function wp_cache_prepend( $key, $value, $group = '' ) {
 
 /**
  * Append data to an existing item by server key.
+ *
+ * This method should throw an error if it is used with compressed data. This is an expected behavior.
+ * Memcached casts the value to be prepended to the initial value to the type of the initial value. Be
+ * careful as this leads to unexpected behavior at times. For instance, prepending (float) 45.23 to
+ * (int) 23 will result in 45, because the value is first combined (45.2323) then cast to "integer"
+ * (the original value), which will be (int) 45. Due to how memcached treats types, the behavior has been
+ * mimicked in the internal cache to produce similar results and improve consistency. It is recommend
+ * that prepends only occur with data of the same type.
  *
  * @link http://www.php.net/manual/en/memcached.prependbykey.php
  *
@@ -951,12 +967,7 @@ class WP_Object_Cache {
 
 		// If group is a non-Memcached group, append to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-
-			// Match types; memcached matches appended value type to original value type; mimic this here
-			$combined = $this->cache[$derived_key] . $value;
-			$type = gettype( $this->cache[$derived_key] );
-			settype( $combined, $type );
-
+			$combined = $this->combine_values( $this->cache[$derived_key], $value, 'app' );
 			$this->add_to_internal_cache( $derived_key, $combined );
 			return true;
 		}
@@ -969,11 +980,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() ) {
-			// Match types; memcached matches appended value type to original value type; mimic this here
-			$combined = $this->cache[$derived_key] . $value;
-			$type = gettype( $this->cache[$derived_key] );
-			settype( $combined, $type );
-
+			$combined = $this->combine_values( $this->cache[$derived_key], $value, 'app' );
 			$this->add_to_internal_cache( $derived_key, $combined );
 		}
 
@@ -1543,6 +1550,14 @@ class WP_Object_Cache {
 	/**
 	 * Prepend data to an existing item.
 	 *
+	 * This method should throw an error if it is used with compressed data. This is an expected behavior.
+	 * Memcached casts the value to be prepended to the initial value to the type of the initial value. Be
+	 * careful as this leads to unexpected behavior at times. For instance, prepending (float) 45.23 to
+	 * (int) 23 will result in 45, because the value is first combined (45.2323) then cast to "integer"
+	 * (the original value), which will be (int) 45. Due to how memcached treats types, the behavior has been
+	 * mimicked in the internal cache to produce similar results and improve consistency. It is recommend
+	 * that prepends only occur with data of the same type.
+	 *
 	 * @link    http://www.php.net/manual/en/memcached.prepend.php
 	 *
 	 * @param   string    $key          The key under which to store the value.
@@ -1560,11 +1575,7 @@ class WP_Object_Cache {
 
 		// If group is a non-Memcached group, prepend to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			// Match types; memcached matches original value type to prepended value; mimic this here
-			$combined = $value . $this->cache[$derived_key];
-			$type = gettype( $value );
-			settype( $combined, $type );
-
+			$combined = $this->combine_values( $this->cache[$derived_key], $value, 'pre' );
 			$this->add_to_internal_cache( $derived_key, $combined );
 			return true;
 		}
@@ -1577,11 +1588,7 @@ class WP_Object_Cache {
 
 		// Store in runtime cache if add was successful
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() ) {
-			// Match types; memcached matches original value type to prepended value; mimic this here
-			$combined = $value . $this->cache[$derived_key];
-			$type = gettype( $value );
-			settype( $combined, $type );
-
+			$combined = $this->combine_values( $this->cache[$derived_key], $value, 'pre' );
 			$this->add_to_internal_cache( $derived_key, $combined );
 		}
 
@@ -1590,6 +1597,14 @@ class WP_Object_Cache {
 
 	/**
 	 * Append data to an existing item by server key.
+	 *
+	 * This method should throw an error if it is used with compressed data. This is an expected behavior.
+	 * Memcached casts the value to be prepended to the initial value to the type of the initial value. Be
+	 * careful as this leads to unexpected behavior at times. For instance, prepending (float) 45.23 to
+	 * (int) 23 will result in 45, because the value is first combined (45.2323) then cast to "integer"
+	 * (the original value), which will be (int) 45. Due to how memcached treats types, the behavior has been
+	 * mimicked in the internal cache to produce similar results and improve consistency. It is recommend
+	 * that prepends only occur with data of the same type.
 	 *
 	 * @link    http://www.php.net/manual/en/memcached.prependbykey.php
 	 *
@@ -1870,6 +1885,33 @@ class WP_Object_Cache {
 		}
 
 		return $derived_keys;
+	}
+
+	/**
+	 * Concatenates two values and casts to type of the first value.
+	 *
+	 * This is used in append and prepend operations to match how these functions are handled
+	 * by memcached. In both cases, whichever value is the original value in the combined value
+	 * will dictate the type of the combined value.
+	 *
+	 * @param   mixed       $original   Original value that dictates the combined type.
+	 * @param   mixed       $pended     Value to combine with original value.
+	 * @param   string      $direction  Either 'pre' or 'app'.
+	 * @return  mixed                   Combined value casted to the type of the first value.
+	 */
+	public function combine_values( $original, $pended, $direction ) {
+		$type = gettype( $original );
+
+		// Combine the values based on direction of the "pend"
+		if ( 'pre' == $direction )
+			$combined = $pended . $original;
+		else
+			$combined = $original . $pended;
+
+		// Cast type of combined value
+		settype( $combined, $type );
+
+		return $combined;
 	}
 
 	/**
