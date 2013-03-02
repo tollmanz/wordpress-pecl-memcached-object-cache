@@ -23,4 +23,5 @@ $memcached_servers = array(
         'domain.com',
         11211
     )
-);```
+);
+```
