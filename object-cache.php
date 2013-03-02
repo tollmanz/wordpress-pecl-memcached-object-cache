@@ -1250,7 +1250,7 @@ class WP_Object_Cache {
 				$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$derived_key] ) ) {
-				return $this->cache[$derived_key];
+				return is_object( $this->cache[$derived_key] ) ? clone $this->cache[$derived_key] : $this->cache[$derived_key];
 			} elseif ( in_array( $group, $this->no_mc_groups ) ) {
 				return false;
 			} else {
@@ -1264,7 +1264,7 @@ class WP_Object_Cache {
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
 			$this->add_to_internal_cache( $derived_key, $value );
 
-		return $value;
+		return is_object( $value ) ? clone $value : $value;
 	}
 
 	/**
