@@ -1551,6 +1551,22 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Synonymous with $this->incr.
+	 *
+	 * Certain plugins expect an "incr" method on the $wp_object_cache object (e.g., Batcache). Since the original
+	 * version of this library matched names to the memcached methods, the "incr" method was missing. Adding this
+	 * method restores compatibility with plugins expecting an "incr" method.
+	 *
+	 * @param   string      $key        The key under which to store the value.
+	 * @param   int         $offset     The amount by which to increment the item's value.
+	 * @param   string      $group      The group value appended to the $key.
+	 * @return  int|bool                Returns item's new value on success or FALSE on failure.
+	 */
+	public function incr(  $key, $offset = 1, $group = 'default' ) {
+		return $this->increment( $key, $offset, $group );
+	}
+
+	/**
 	 * Prepend data to an existing item.
 	 *
 	 * This method should throw an error if it is used with compressed data. This is an expected behavior.
