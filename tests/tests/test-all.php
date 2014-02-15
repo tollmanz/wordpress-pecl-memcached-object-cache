@@ -3125,6 +3125,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		}
 
 		// Global group
+		$this->object_cache->add_global_groups( 'global-cache-test' );
 		$this->assertTrue( $this->object_cache->set( $key, $val, 'global-cache-test' ) );
 		$this->assertEquals( $val, $this->object_cache->get( $key, 'global-cache-test' ) );
 		$this->object_cache->switch_to_blog( 999 );
