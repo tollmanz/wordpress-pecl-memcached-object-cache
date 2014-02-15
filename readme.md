@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/tollmanz/wordpress-memcached-backend.png?branch=master)](https://travis-ci.org/tollmanz/wordpress-memcached-backend)
+
 ## Overview
 
 A WordPress object cache backend that implements all available methods in the Memcached PECL extension (http://www.php.net/manual/en/class.memcached.php)
