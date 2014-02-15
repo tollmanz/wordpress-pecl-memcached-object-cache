@@ -717,6 +717,18 @@ function wp_cache_set_option( $option, $value ) {
 }
 
 /**
+ * Switch blog prefix, which changes the cache that is accessed.
+ *
+ * @param  int     $blog_id    Blog to switch to.
+ * @return void
+ */
+function wp_cache_switch_to_blog( $blog_id ) {
+	global $wp_object_cache;
+	return $wp_object_cache->switch_to_blog( $blog_id );
+}
+
+
+/**
  * Sets up Object Cache Global and assigns it.
  *
  * @global  WP_Object_Cache     $wp_object_cache    WordPress Object Cache
@@ -2015,5 +2027,17 @@ class WP_Object_Cache {
 			return $this->cache[$derived_key];
 
 		return false;
+	}
+
+	/**
+	 * Switch blog prefix, which changes the cache that is accessed.
+	 *
+	 * @param  int     $blog_id    Blog to switch to.
+	 * @return void
+	 */
+	public function switch_to_blog( $blog_id ) {
+		global $table_prefix;
+		$blog_id           = (int) $blog_id;
+		$this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
 	}
 }
