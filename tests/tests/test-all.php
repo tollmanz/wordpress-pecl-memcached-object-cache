@@ -3092,6 +3092,51 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$this->assertTrue( $this->object_cache->setOption( Memcached::OPT_PREFIX_KEY, $value ) );
 		$this->assertSame( $value, $this->object_cache->getOption( Memcached::OPT_PREFIX_KEY ) );
 	}
+
+	public function test_switch_to_blog() {
+		if ( ! method_exists( $this->cache, 'switch_to_blog' ) )
+			return;
+
+		$key = rand_str();
+		$val = rand_str();
+		$val2 = rand_str();
+
+		if ( ! is_multisite() ) {
+			// Single site ingnores switch_to_blog().
+			$this->assertTrue( $this->cache->set( $key, $val ) );
+			$this->assertEquals( $val, $this->cache->get( $key ) );
+			$this->cache->switch_to_blog( 999 );
+			$this->assertEquals( $val, $this->cache->get( $key ) );
+			$this->assertTrue( $this->cache->set( $key, $val2 ) );
+			$this->assertEquals( $val2, $this->cache->get( $key ) );
+			$this->cache->switch_to_blog( get_current_blog_id() );
+			$this->assertEquals( $val2, $this->cache->get( $key ) );
+		} else {
+			// Multisite should have separate per-blog caches
+			$this->assertTrue( $this->cache->set( $key, $val ) );
+			$this->assertEquals( $val, $this->cache->get( $key ) );
+			$this->cache->switch_to_blog( 999 );
+			$this->assertFalse( $this->cache->get( $key ) );
+			$this->assertTrue( $this->cache->set( $key, $val2 ) );
+			$this->assertEquals( $val2, $this->cache->get( $key ) );
+			$this->cache->switch_to_blog( get_current_blog_id() );
+			$this->assertEquals( $val, $this->cache->get( $key ) );
+			$this->cache->switch_to_blog( 999 );
+			$this->assertEquals( $val2, $this->cache->get( $key ) );
+			$this->cache->switch_to_blog( get_current_blog_id() );
+			$this->assertEquals( $val, $this->cache->get( $key ) );
+		}
+
+		// Global group
+		$this->assertTrue( $this->cache->set( $key, $val, 'global-cache-test' ) );
+		$this->assertEquals( $val, $this->cache->get( $key, 'global-cache-test' ) );
+		$this->cache->switch_to_blog( 999 );
+		$this->assertEquals( $val, $this->cache->get( $key, 'global-cache-test' ) );
+		$this->assertTrue( $this->cache->set( $key, $val2, 'global-cache-test' ) );
+		$this->assertEquals( $val2, $this->cache->get( $key, 'global-cache-test' ) );
+		$this->cache->switch_to_blog( get_current_blog_id() );
+		$this->assertEquals( $val2, $this->cache->get( $key, 'global-cache-test' ) );
+	}
 }
 
 function memcached_get_callback_true( $m, $key, &$value ) {
