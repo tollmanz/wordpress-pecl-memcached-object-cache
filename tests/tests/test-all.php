@@ -3094,12 +3094,9 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 	}
 
 	public function test_switch_to_blog() {
-		if ( ! method_exists( $this->object_cache, 'switch_to_blog' ) )
-			return;
-
-		$key = rand_str();
-		$val = rand_str();
-		$val2 = rand_str();
+		$key = 'oshie';
+		$val = 'kovalchuk';
+		$val2 = 'bobrovsky';
 
 		if ( ! is_multisite() ) {
 			// Single site ingnores switch_to_blog().
