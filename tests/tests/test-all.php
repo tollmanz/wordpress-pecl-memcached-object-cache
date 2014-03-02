@@ -1138,6 +1138,88 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$this->assertSame( $value, $this->object_cache->getByKey( $server_key, $key, $group ) );
 	}
 
+	public function test_get_by_key_value_with_found_indicator() {
+		$key = microtime();
+		$server_key = microtime();
+		$value = 'johansen';
+		$group = 'senators';
+		$found = false;
+
+		// Add string to memcached
+		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value, $group ) );
+
+		// Verify correct value is returned
+		$this->assertSame( $value, $this->object_cache->getByKey( $server_key, $key, $group, false, $found ) );
+
+		// Verify that found variable is set to true because the item was found
+		$this->assertTrue( $found );
+	}
+
+	public function test_get_by_key_value_with_found_indicator_when_value_is_not_found() {
+		$key = microtime();
+		$server_key = microtime();
+		$value = 'fisher';
+		$group = 'senators';
+		$found = false;
+
+		// Add string to memcached
+		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value, $group ) );
+
+		// Verify that the value is deleted
+		$this->assertTrue( $this->object_cache->deleteByKey( $server_key, $key, $group ) );
+
+		// Verify that false is returned
+		$this->assertFalse( $this->object_cache->getByKey( $server_key, $key, $group, false, $found ) );
+
+		// Verify that found variable is set to true because the item was found
+		$this->assertFalse( $found );
+	}
+
+	public function test_get_by_key_value_with_found_indicator_when_retrieved_from_memcached() {
+		$key = microtime();
+		$server_key = microtime();
+		$value = 'ovechkin';
+		$group = 'capitals';
+		$found = false;
+
+		// Add string to memcached
+		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value, $group ) );
+
+		// Remove from internal cache and verify
+		unset( $this->object_cache->cache[ $this->object_cache->buildKey( $key, $group ) ] );
+		$this->assertFalse( $this->object_cache->get_from_runtime_cache( $key, $group ) );
+
+		// Verify correct value is returned
+		$this->assertSame( $value, $this->object_cache->getByKey( $server_key, $key, $group, false, $found ) );
+
+		// Verify that found variable is set to true because the item was found
+		$this->assertTrue( $found );
+	}
+
+	public function test_get_by_key_value_with_found_indicator_when_retrieved_from_memcached_and_value_is_not_found() {
+		$key = microtime();
+		$server_key = microtime();
+		$value = 'simmonds';
+		$group = 'flyers';
+		$found = false;
+
+		// Add string to memcached
+		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value, $group ) );
+
+		// Remove from internal cache and verify
+		unset( $this->object_cache->cache[ $this->object_cache->buildKey( $key, $group ) ] );
+		$this->assertFalse( $this->object_cache->get_from_runtime_cache( $key, $group ) );
+
+		// Verify that the value is deleted
+		$this->assertTrue( $this->object_cache->deleteByKey( $server_key, $key, $group ) );
+
+		// Verify that false is returned
+		$this->assertFalse( $this->object_cache->getByKey( $server_key, $key, $group, false, $found ) );
+
+		// Verify that found variable is set to true because the item was found
+		$this->assertFalse( $found );
+	}
+
 	public function test_get_by_key_value_with_callback_with_true_response() {
 		$key = microtime();
 		$group = 'nj-devils';
