@@ -297,25 +297,19 @@ function wp_cache_flush( $delay = 0 ) {
  *
  * @param string        $key        The key under which to store the value.
  * @param string        $group      The group value appended to the $key.
+ * @param bool          $force      Whether or not to force a cache invalidation.
+ * @param null|bool     $found      Variable passed by reference to determine if the value was found or not.
  * @param null|string   $cache_cb   Read-through caching callback.
  * @param null|float    $cas_token  The variable to store the CAS token in.
  * @return bool|mixed               Cached object value.
  */
-function wp_cache_get( $key, $group = '', $cache_cb = null, &$cas_token = null ) {
+function wp_cache_get( $key, $group = '', $force = false, &$found = null, $cache_cb = null, &$cas_token = null ) {
 	global $wp_object_cache;
 
-	/**
-	 * Handles situations where the $force argument for the wp_cache_get function in core may be used. It is only
-	 * used once in all of WP Core and since the function does not do anything with it, it is pointless to support.
-	 * I'm catching the issue here to avoid conflicts.
-	 */
-	if ( true === $cache_cb )
-		$cache_cb = null;
-
-	if ( func_num_args() > 2 )
-		return $wp_object_cache->get( $key, $group, '', false, $cache_cb, $cas_token );
+	if ( func_num_args() > 4 )
+		return $wp_object_cache->get( $key, $group, $force, $found, '', false, $cache_cb, $cas_token );
 	else
-		return $wp_object_cache->get( $key, $group );
+		return $wp_object_cache->get( $key, $group, $force, $found );
 }
 
 /**
@@ -331,17 +325,19 @@ function wp_cache_get( $key, $group = '', $cache_cb = null, &$cas_token = null )
  * @param string        $server_key The key identifying the server to store the value on.
  * @param string        $key        The key under which to store the value.
  * @param string        $group      The group value appended to the $key.
+ * @param bool          $force      Whether or not to force a cache invalidation.
+ * @param null|bool     $found      Variable passed by reference to determine if the value was found or not.
  * @param null|string   $cache_cb   Read-through caching callback.
  * @param null|float    $cas_token  The variable to store the CAS token in.
  * @return bool|mixed               Cached object value.
  */
-function wp_cache_get_by_key( $server_key, $key, $group = '', $cache_cb = NULL, &$cas_token = NULL ) {
+function wp_cache_get_by_key( $server_key, $key, $group = '', $force = false, &$found = null, $cache_cb = NULL, &$cas_token = NULL ) {
 	global $wp_object_cache;
 
-	if ( func_num_args() > 3 )
-		return $wp_object_cache->getByKey( $server_key, $key, $group, $cache_cb, $cas_token );
+	if ( func_num_args() > 5 )
+		return $wp_object_cache->getByKey( $server_key, $key, $group, $force, $found, $cache_cb, $cas_token );
 	else
-		return $wp_object_cache->getByKey( $server_key, $key, $group );
+		return $wp_object_cache->getByKey( $server_key, $key, $group, $force, $found );
 }
 
 /**
@@ -1245,23 +1241,29 @@ class WP_Object_Cache {
 	 *
 	 * @param   string          $key        The key under which to store the value.
 	 * @param   string          $group      The group value appended to the $key.
+	 * @param   bool            $force      Whether or not to force a cache invalidation.
+	 * @param   null|bool       $found      Variable passed by reference to determine if the value was found or not.
 	 * @param   string          $server_key The key identifying the server to store the value on.
 	 * @param   bool            $byKey      True to store in internal cache by key; false to not store by key
 	 * @param   null|callable   $cache_cb   Read-through caching callback.
 	 * @param   null|float      $cas_token  The variable to store the CAS token in.
 	 * @return  bool|mixed                  Cached object value.
 	 */
-	public function get( $key, $group = 'default', $server_key = '', $byKey = false, $cache_cb = NULL, &$cas_token = NULL ) {
+	public function get( $key, $group = 'default', $force = false, &$found = null, $server_key = '', $byKey = false, $cache_cb = NULL, &$cas_token = NULL ) {
 		$derived_key = $this->buildKey( $key, $group );
 
+		// Assume object is not found
+		$found = false;
+
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
-		if ( func_num_args() > 4 && ! in_array( $group, $this->no_mc_groups ) ) {
+		if ( func_num_args() > 6 && ! in_array( $group, $this->no_mc_groups ) ) {
 			if ( $byKey )
 				$value = $this->m->getByKey( $server_key, $derived_key, $cache_cb, $cas_token );
 			else
 				$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$derived_key] ) ) {
+				$found = true;
 				return is_object( $this->cache[$derived_key] ) ? clone $this->cache[$derived_key] : $this->cache[$derived_key];
 			} elseif ( in_array( $group, $this->no_mc_groups ) ) {
 				return false;
@@ -1273,8 +1275,10 @@ class WP_Object_Cache {
 			}
 		}
 
-		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() ) {
 			$this->add_to_internal_cache( $derived_key, $value );
+			$found = true;
+		}
 
 		return is_object( $value ) ? clone $value : $value;
 	}
@@ -1296,19 +1300,21 @@ class WP_Object_Cache {
 	 * @param   string          $server_key The key identifying the server to store the value on.
 	 * @param   string          $key        The key under which to store the value.
 	 * @param   string          $group      The group value appended to the $key.
+	 * @param   bool            $force      Whether or not to force a cache invalidation.
+	 * @param   null|bool       $found      Variable passed by reference to determine if the value was found or not.
 	 * @param   null|string     $cache_cb   Read-through caching callback.
 	 * @param   null|float      $cas_token  The variable to store the CAS token in.
 	 * @return  bool|mixed                  Cached object value.
 	 */
-	public function getByKey( $server_key, $key, $group = 'default', $cache_cb = NULL, &$cas_token = NULL ) {
+	public function getByKey( $server_key, $key, $group = 'default', $force = false, &$found = null, $cache_cb = NULL, &$cas_token = NULL ) {
 		/**
 		 * Need to be careful how "get" is called. If you send $cache_cb, and $cas_token, it will hit memcached.
 		 * Only send those args if they were sent to this function.
 		 */
-		if ( func_num_args() > 3 )
-			return $this->get( $key, $group, $server_key, true, $cache_cb, $cas_token );
+		if ( func_num_args() > 5 )
+			return $this->get( $key, $group, $force, $found, $server_key, true, $cache_cb, $cas_token );
 		else
-			return $this->get( $key, $group, $server_key, true );
+			return $this->get( $key, $group, $force, $found, $server_key, true );
 	}
 
 	/**
