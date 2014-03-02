@@ -325,17 +325,19 @@ function wp_cache_get( $key, $group = '', $force = false, &$found = null, $cache
  * @param string        $server_key The key identifying the server to store the value on.
  * @param string        $key        The key under which to store the value.
  * @param string        $group      The group value appended to the $key.
+ * @param bool          $force      Whether or not to force a cache invalidation.
+ * @param null|bool     $found      Variable passed by reference to determine if the value was found or not.
  * @param null|string   $cache_cb   Read-through caching callback.
  * @param null|float    $cas_token  The variable to store the CAS token in.
  * @return bool|mixed               Cached object value.
  */
-function wp_cache_get_by_key( $server_key, $key, $group = '', $cache_cb = NULL, &$cas_token = NULL ) {
+function wp_cache_get_by_key( $server_key, $key, $group = '', $force = false, &$found = null, $cache_cb = NULL, &$cas_token = NULL ) {
 	global $wp_object_cache;
 
-	if ( func_num_args() > 3 )
-		return $wp_object_cache->getByKey( $server_key, $key, $group, $cache_cb, $cas_token );
+	if ( func_num_args() > 5 )
+		return $wp_object_cache->getByKey( $server_key, $key, $group, $force, $found, $cache_cb, $cas_token );
 	else
-		return $wp_object_cache->getByKey( $server_key, $key, $group );
+		return $wp_object_cache->getByKey( $server_key, $key, $group, $force, $found );
 }
 
 /**
@@ -1298,19 +1300,21 @@ class WP_Object_Cache {
 	 * @param   string          $server_key The key identifying the server to store the value on.
 	 * @param   string          $key        The key under which to store the value.
 	 * @param   string          $group      The group value appended to the $key.
+	 * @param   bool            $force      Whether or not to force a cache invalidation.
+	 * @param   null|bool       $found      Variable passed by reference to determine if the value was found or not.
 	 * @param   null|string     $cache_cb   Read-through caching callback.
 	 * @param   null|float      $cas_token  The variable to store the CAS token in.
 	 * @return  bool|mixed                  Cached object value.
 	 */
-	public function getByKey( $server_key, $key, $group = 'default', $cache_cb = NULL, &$cas_token = NULL ) {
+	public function getByKey( $server_key, $key, $group = 'default', $force = false, &$found = null, $cache_cb = NULL, &$cas_token = NULL ) {
 		/**
 		 * Need to be careful how "get" is called. If you send $cache_cb, and $cas_token, it will hit memcached.
 		 * Only send those args if they were sent to this function.
 		 */
-		if ( func_num_args() > 3 )
-			return $this->get( $key, $group, $server_key, true, $cache_cb, $cas_token );
+		if ( func_num_args() > 5 )
+			return $this->get( $key, $group, $force, $found, $server_key, true, $cache_cb, $cas_token );
 		else
-			return $this->get( $key, $group, $server_key, true );
+			return $this->get( $key, $group, $force, $found, $server_key, true );
 	}
 
 	/**
