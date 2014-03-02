@@ -202,7 +202,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 	}
 
 	public function test_add_servers() {
-		$servers = array( array( '127.0.0.1', 11211, 1 ), array( 'trunkosaurus.dev', 11211, 1 ) );
+		$servers = array( array( '127.0.0.1', 11211, 1 ), array( '127.0.0.1', 11212, 1 ) );
 
 		// Add server
 		$this->assertTrue( $this->object_cache->addServers( $servers ) );
