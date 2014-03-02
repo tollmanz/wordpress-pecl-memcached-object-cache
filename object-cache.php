@@ -1250,6 +1250,9 @@ class WP_Object_Cache {
 	public function get( $key, $group = 'default', $force = false, &$found = null, $server_key = '', $byKey = false, $cache_cb = NULL, &$cas_token = NULL ) {
 		$derived_key = $this->buildKey( $key, $group );
 
+		// Assume object is not found
+		$found = false;
+
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
 		if ( func_num_args() > 6 && ! in_array( $group, $this->no_mc_groups ) ) {
 			if ( $byKey )
@@ -1258,6 +1261,7 @@ class WP_Object_Cache {
 				$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 		} else {
 			if ( isset( $this->cache[$derived_key] ) ) {
+				$found = true;
 				return is_object( $this->cache[$derived_key] ) ? clone $this->cache[$derived_key] : $this->cache[$derived_key];
 			} elseif ( in_array( $group, $this->no_mc_groups ) ) {
 				return false;
@@ -1269,8 +1273,10 @@ class WP_Object_Cache {
 			}
 		}
 
-		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
+		if ( Memcached::RES_SUCCESS === $this->getResultCode() ) {
 			$this->add_to_internal_cache( $derived_key, $value );
+			$found = true;
+		}
 
 		return is_object( $value ) ? clone $value : $value;
 	}
