@@ -407,7 +407,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$this->assertTrue( $this->object_cache->add( $key, $value ) );
 
 		// Get CAS token
-		$this->assertSame( $value, $this->object_cache->get( $key, 'default', '', false, null, $cas_token ) );
+		$this->assertSame( $value, $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token ) );
 
 		// Verify that we have a CAS token
 		$this->assertTrue( is_float( $cas_token ) );
@@ -430,7 +430,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 
 		// Get CAS token
 		$cas_token = '';
-		$this->assertSame( $value, $this->object_cache->get( $key, 'default', '', false, null, $cas_token ) );
+		$this->assertSame( $value, $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token ) );
 
 		// Verify that we have a CAS token
 		$this->assertTrue( is_float( $cas_token ) );
@@ -838,7 +838,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$value = 'brodeur';
 
 		// Verify that callback sets value correctly
-		$this->assertSame( $value, $this->object_cache->get( $key, $group, '', true, 'memcached_get_callback_true' ) );
+		$this->assertSame( $value, $this->object_cache->get( $key, $group, false, $found, '', true, 'memcached_get_callback_true' ) );
 
 		// Doublecheck it
 		$this->assertSame( $value, $this->object_cache->get( $key, $group ) );
@@ -851,7 +851,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$value = 'brodeur';
 
 		// Verify that callback sets value correctly
-		$this->assertFalse( $this->object_cache->get( $key, $group, '', false, 'memcached_get_callback_false' ) );
+		$this->assertFalse( $this->object_cache->get( $key, $group, false, $found, '', false, 'memcached_get_callback_false' ) );
 
 		// Doublecheck it
 		$this->assertFalse( $this->object_cache->get( $key, $group ) );
@@ -864,7 +864,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$value = 'brodeur';
 
 		// Verify that callback sets value correctly
-		$this->assertSame( $value, $this->object_cache->get( $key, $group, '', false, array( &$this, 'memcached_get_callback_true_class_method' ) ) );
+		$this->assertSame( $value, $this->object_cache->get( $key, $group, false, $found, '', false, array( &$this, 'memcached_get_callback_true_class_method' ) ) );
 
 		// Doublecheck it
 		$this->assertSame( $value, $this->object_cache->get( $key, $group ) );
@@ -880,7 +880,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$group = 'nhl-nj-devils-team-runner-up';
 
 		// Verify that callback sets value correctly
-		$this->assertFalse( $this->object_cache->get( $key, $group, '', false, array( &$this, 'memcached_get_callback_false_class_method' ) ) );
+		$this->assertFalse( $this->object_cache->get( $key, $group, false, $found, '', false, array( &$this, 'memcached_get_callback_false_class_method' ) ) );
 
 		// Doublecheck it
 		$this->assertFalse( $this->object_cache->get( $key, $group ) );
@@ -898,14 +898,14 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$value = 'brodeur';
 
 		// Verify that if completely bypassed
-		$this->assertFalse( $this->object_cache->get( $key, $group, '', false, array( &$this, 'memcached_get_callback_true_no_mc_group' ) ) );
+		$this->assertFalse( $this->object_cache->get( $key, $group, false, $found, '', false, array( &$this, 'memcached_get_callback_true_no_mc_group' ) ) );
 
 		// Doublecheck that no value has been set
 		$this->assertFalse( $this->object_cache->get( $key, $group ) );
 
 		// Verify that a normal set and get works when a callback is sent
 		$this->assertTrue( $this->object_cache->set( $key, $value, $group ) );
-		$this->assertSame( $value, $this->object_cache->get( $key, $group, '', false, array( &$this, 'memcached_get_callback_true_no_mc_group' ) ) );
+		$this->assertSame( $value, $this->object_cache->get( $key, $group, false, $found, '', false, array( &$this, 'memcached_get_callback_true_no_mc_group' ) ) );
 	}
 
 	public function memcached_get_callback_true_no_mc_group( $m, $key, &$value ) {
@@ -923,7 +923,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$this->assertTrue( $this->object_cache->add( $key, $value ) );
 
 		// Get CAS token
-		$this->assertSame( $value, $this->object_cache->get( $key, 'default', '', false, null, $cas_token ) );
+		$this->assertSame( $value, $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token ) );
 
 		// Verify that we have a CAS token
 		$this->assertTrue( is_float( $cas_token ) );
@@ -939,7 +939,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$key = microtime();
 
 		// Return false with value not yet set
-		$this->assertFalse( $this->object_cache->get( $key, 'default', '', false, null, $cas_token ) );
+		$this->assertFalse( $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token ) );
 
 		// Verify that we have a CAS token
 		$this->assertTrue( is_null( $cas_token ) );
@@ -952,7 +952,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$group = 'devils';
 
 		// Set value via the callback when key is not set
-		$this->assertSame( $value, $this->object_cache->get( $key, $group, '', false, array( &$this, 'memcached_get_callback_for_cas_token_and_callback' ), $cas_token ) );
+		$this->assertSame( $value, $this->object_cache->get( $key, $group, false, $found, '', false, array( &$this, 'memcached_get_callback_for_cas_token_and_callback' ), $cas_token ) );
 
 		// Double check the value
 		$this->assertSame( $value, $this->object_cache->get( $key, $group ) );
@@ -961,7 +961,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$this->assertTrue( (float) 0 === $cas_token );
 
 		// The value should now be set and this function should return the same result
-		$this->assertSame( $value, $this->object_cache->get( $key, $group, '', false, array( &$this, 'memcached_get_callback_for_cas_token_and_callback' ), $cas_token ) );
+		$this->assertSame( $value, $this->object_cache->get( $key, $group, false, $found, '', false, array( &$this, 'memcached_get_callback_for_cas_token_and_callback' ), $cas_token ) );
 
 		// See if we got an acceptable CAS token
 		$this->assertTrue( is_float( $cas_token ) && $cas_token > 0 );
@@ -982,7 +982,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$group = 'devils';
 
 		// Set value via the callback when key is not set
-		$this->assertSame( $value, $this->object_cache->get( $key, $group, '', false, array( &$this, 'fake_function' ) ) );
+		$this->assertSame( $value, $this->object_cache->get( $key, $group, false, $found, '', false, array( &$this, 'fake_function' ) ) );
 
 	}
 
