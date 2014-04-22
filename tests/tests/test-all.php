@@ -202,7 +202,7 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$value = 'crawford';
 
 		// Suspend the cache
-		wp_suspend_cache_addition();
+		wp_suspend_cache_addition( true );
 
 		// Attempt to add string to cache
 		$this->assertFalse( $this->object_cache->add( $key, $value ) );
