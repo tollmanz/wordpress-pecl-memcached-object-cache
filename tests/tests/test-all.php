@@ -212,6 +212,36 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 		$this->assertSame( Memcached::RES_NOTFOUND, $this->object_cache->getResultCode() );
 	}
 
+	/**
+	 * Verify that wp_suspend_cache_addition() stops items from being added to cache, but allows additions after re-enabled
+	 */
+	public function test_add_enabled_by_wp_cache_un_suspend_addition_string() {
+		$key = microtime();
+		$value = 'miller';
+
+		// Suspend the cache
+		wp_suspend_cache_addition( true );
+
+		// Attempt to add string to cache
+		$this->assertFalse( $this->object_cache->add( $key, $value ) );
+
+		// Verify that the value does not exist in cache
+		$this->object_cache->get( $key );
+		$this->assertSame( Memcached::RES_NOTFOUND, $this->object_cache->getResultCode() );
+
+		$key = microtime();
+		$value = 'carruth';
+
+		// Re-enable the cache
+		wp_suspend_cache_addition( false );
+
+		// Add the string to the cache
+		$this->assertTrue( $this->object_cache->add( $key, $value ) );
+
+		// Verify that the value is in the cache
+		$this->assertSame( $value, $this->object_cache->get( $key ));
+	}
+
 	public function test_add_server() {
 		$servers = array( array( '127.0.0.1', 11211, 0 ) );
 
