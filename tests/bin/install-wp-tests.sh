@@ -47,6 +47,7 @@ install_test_suite() {
 		local PATH='tags/3.7.3/'
 	else
 		local PATH='trunk/'
+	fi
 
 	svn co --quiet http://develop.svn.wordpress.org/${PATH}tests/phpunit/includes/
 
