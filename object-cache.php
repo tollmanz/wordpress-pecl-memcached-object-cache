@@ -807,6 +807,20 @@ class WP_Object_Cache {
 	 * @var string
 	 */
 	public $blog_prefix = '';
+	
+	/**
+	 * Holds the SASL auth username.
+	 *
+	 * @var string
+	 */
+	private $username;
+	
+	/**
+	 * Holds the SASL auth password.
+	 *
+	 * @var string
+	 */
+	private $password;
 
 	/**
 	 * Instantiate the Memcached class.
@@ -819,7 +833,7 @@ class WP_Object_Cache {
 	 * @param   null    $persistent_id      To create an instance that persists between requests, use persistent_id to specify a unique ID for the instance.
 	 */
 	public function __construct( $persistent_id = NULL ) {
-		global $memcached_servers, $blog_id, $table_prefix;
+		global $memcached_servers, $memcached_username, $memcached_password, $blog_id, $table_prefix;
 
 		if ( is_null( $persistent_id ) || ! is_string( $persistent_id ) )
 			$this->m = new Memcached();
@@ -830,9 +844,18 @@ class WP_Object_Cache {
 			$this->servers = $memcached_servers;
 		else
 			$this->servers = array( array( '127.0.0.1', 11211 ) );
-
-		$this->addServers( $this->servers );
-
+		
+		if ( isset( $memcached_username ) )
+			$this->username = $memcached_username;
+			
+		if ( isset( $memcached_password ) )
+			$this->password = $memcached_password;
+		
+		$this->m->addServers($this->servers);
+		$this->m->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
+		if ( version_compare( phpversion( 'memcached' ) , '2.2', '>=' ) && isset( $memcached_username ) && isset( $memcached_password ))
+			$this->m->setSaslAuthData($this->username, $this->password);
+		
 		/**
 		 * This approach is borrowed from Sivel and Boren. Use the salt for easy cache invalidation and for
 		 * multi single WP installs on the same server.
