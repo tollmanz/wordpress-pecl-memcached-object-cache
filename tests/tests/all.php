@@ -154,13 +154,3 @@ class MemcachedUnitTestsAll extends MemcachedUnitTests {
 		$this->assertEquals( $val2, $this->object_cache->get( $key, 'global-cache-test' ) );
 	}
 }
-
-function memcached_get_callback_true( $m, $key, &$value ) {
-	$value = 'brodeur';
-	return true;
-}
-
-function memcached_get_callback_false( $m, $key, &$value ) {
-	$value = 'brodeur';
-	return false;
-}

@@ -605,3 +605,13 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 		$this->assertSame( $value, $this->object_cache->getByKey( $server_key, $key, $group, false, $found, array( &$this, 'fake_function' ) ) );
 	}
 }
+
+function memcached_get_callback_true( $m, $key, &$value ) {
+	$value = 'brodeur';
+	return true;
+}
+
+function memcached_get_callback_false( $m, $key, &$value ) {
+	$value = 'brodeur';
+	return false;
+}
