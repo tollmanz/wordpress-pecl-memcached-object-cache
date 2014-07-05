@@ -7,8 +7,9 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 
 	public $servers;
 
+	public $test_cache;
+
 	public function setUp() {
-		parent::setUp();
 		global $memcached_servers;
 
 		if ( ! is_array( $memcached_servers ) ) {
@@ -17,8 +18,15 @@ class MemcachedUnitTests extends WP_UnitTestCase {
 			);
 		}
 
-		$this->object_cache = new WP_Object_Cache();
-		$this->object_cache->flush();
+		// Instantiate the core cache tests and use that setup routine
+		$this->test_cache = new Tests_Cache();
+		$this->test_cache->setUp();
+
+		$this->object_cache = $this->test_cache->cache;
 		$this->servers = $this->object_cache->servers;
+	}
+
+	public function tearDown() {
+		$this->test_cache->tearDown();
 	}
 }
