@@ -1131,6 +1131,21 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Decrement a numeric item's value.
+	 *
+	 * Alias for $this->decrement. Other caching backends use this abbreviated form of the function. It *may* cause
+	 * breakage somewhere, so it is nice to have. This function will also allow the core unit tests to pass.
+	 *
+	 * @param string    $key    The key under which to store the value.
+	 * @param int       $offset The amount by which to decrement the item's value.
+	 * @param string    $group  The group value appended to the $key.
+	 * @return int|bool         Returns item's new value on success or FALSE on failure.
+	 */
+	public function decr( $key, $offset = 1, $group = 'default' ) {
+		return $this->decrement( $key, $offset, $group );
+	}
+
+	/**
 	 * Remove the item from the cache.
 	 *
 	 * Remove an item from memcached with identified by $key after $time seconds. The
