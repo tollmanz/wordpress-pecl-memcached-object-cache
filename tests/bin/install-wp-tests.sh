@@ -50,6 +50,15 @@ install_test_suite() {
 	sed $ioption "s/yourusernamehere/$DB_USER/" wp-tests-config.php
 	sed $ioption "s/yourpasswordhere/$DB_PASS/" wp-tests-config.php
 	sed $ioption "s|localhost|${DB_HOST}|" wp-tests-config.php
+
+	# Setup memcached servers
+	echo 'global $memcached_servers;' >> wp-tests-config.php
+	echo '$memcached_servers = array(' >> wp-tests-config.php
+	echo '	array(' >> wp-tests-config.php
+	echo '		"127.0.0.1",' >> wp-tests-config.php
+	echo '		11211' >> wp-tests-config.php
+	echo '	)' >> wp-tests-config.php
+	echo ');' >> wp-tests-config.php
 }
 
 install_db() {
