@@ -97,7 +97,7 @@ class MemcachedUnitTestsReplace extends MemcachedUnitTests {
 		$this->assertTrue( $this->object_cache->replace( $key, $value2, $group, $expiration ) );
 
 		// Verify that the value is in cache by accessing memcached directly
-		$this->assertEquals( $value, $this->object_cache->m->get( $built_key ) );
+		$this->assertEquals( $value2, $this->object_cache->m->get( $built_key ) );
 
 		// Remove the value from internal cache to force a lookup
 		unset( $this->object_cache->cache[ $built_key ] );
