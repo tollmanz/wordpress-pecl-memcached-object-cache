@@ -224,4 +224,52 @@ class MemcachedUnitTestsAdd extends MemcachedUnitTests {
 		// Verify that the value is in the cache
 		$this->assertSame( $value, $this->object_cache->get( $key ));
 	}
+
+	public function test_add_with_expiration_of_30_days() {
+		$key = 'usa';
+		$value = 'merica';
+		$group = 'july';
+		$built_key = $this->object_cache->buildKey( $key, $group );
+
+		// 30 days
+		$expiration = 60 * 60 * 24 * 30;
+
+		$this->assertTrue( $this->object_cache->add( $key, $value, $group, $expiration ) );
+
+		// Verify that the value is in cache by accessing memcached directly
+		$this->assertEquals( $value, $this->object_cache->m->get( $built_key ) );
+
+		// Remove the value from internal cache to force a lookup
+		unset( $this->object_cache->cache[ $built_key ] );
+
+		// Verify that the value is no longer in the internal cache
+		$this->assertFalse( $this->object_cache->get_from_runtime_cache( $key, $group ) );
+
+		// Do the lookup with the API to verify that we get the value
+		$this->assertEquals( $value, $this->object_cache->get( $key, $group ) );
+	}
+
+	public function test_add_with_expiration_longer_than_30_days() {
+		$key = 'usa';
+		$value = 'merica';
+		$group = 'july';
+		$built_key = $this->object_cache->buildKey( $key, $group );
+
+		// 30 days and 1 second; if interpreted as timestamp, becomes "Sat, 31 Jan 1970 00:00:01 GMT"
+		$expiration = 60 * 60 * 24 * 30 + 1;
+
+		$this->assertTrue( $this->object_cache->add( $key, $value, $group, $expiration ) );
+
+		// Verify that the value is in cache
+		$this->assertEquals( $value, $this->object_cache->m->get( $built_key ) );
+
+		// Remove the value from internal cache to force a lookup
+		unset( $this->object_cache->cache[ $built_key ] );
+
+		// Verify that the value is no longer in the internal cache
+		$this->assertFalse( $this->object_cache->get_from_runtime_cache( $key, $group ) );
+
+		// Do the lookup with the API to verify that we get the value
+		$this->assertEquals( $value, $this->object_cache->get( $key, $group ) );
+	}
 }
