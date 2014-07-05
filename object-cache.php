@@ -1060,9 +1060,9 @@ class WP_Object_Cache {
 
 		// Save to Memcached
 		if ( $byKey )
-			$result = $this->m->casByKey( $cas_token, $server_key, $derived_key, $value, absint( $expiration ) );
+			$result = $this->m->casByKey( $cas_token, $server_key, $derived_key, $value, $expiration );
 		else
-			$result = $this->m->cas( $cas_token, $derived_key, $value, absint( $expiration ) );
+			$result = $this->m->cas( $cas_token, $derived_key, $value, $expiration );
 
 		// Store in runtime cache if cas was successful
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
