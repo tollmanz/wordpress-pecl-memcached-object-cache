@@ -1764,10 +1764,11 @@ class WP_Object_Cache {
 		}
 
 		// Save to Memcached
-		if ( $byKey )
+		if ( $byKey ) {
 			$result = $this->m->setByKey( $server_key, $derived_key, $value, absint( $expiration ) );
-		else
+		} else {
 			$result = $this->m->set( $derived_key, $value, absint( $expiration ) );
+		}
 
 		// Store in runtime cache if add was successful
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
@@ -1980,6 +1981,10 @@ class WP_Object_Cache {
 	 * @param   mixed       $value          Object value.
 	 */
 	public function add_to_internal_cache( $derived_key, $value ) {
+		if ( is_object( $value ) ) {
+			$value = clone $value;
+		}
+
 		$this->cache[$derived_key] = $value;
 	}
 
