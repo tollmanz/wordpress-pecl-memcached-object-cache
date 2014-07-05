@@ -1713,9 +1713,9 @@ class WP_Object_Cache {
 
 		// Save to Memcached
 		if ( $byKey )
-			$result = $this->m->replaceByKey( $server_key, $derived_key, $value, absint( $expiration ) );
+			$result = $this->m->replaceByKey( $server_key, $derived_key, $value, $expiration );
 		else
-			$result = $this->m->replace( $derived_key, $value, absint( $expiration ) );
+			$result = $this->m->replace( $derived_key, $value, $expiration );
 
 		// Store in runtime cache if add was successful
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
@@ -1769,9 +1769,9 @@ class WP_Object_Cache {
 
 		// Save to Memcached
 		if ( $byKey ) {
-			$result = $this->m->setByKey( $server_key, $derived_key, $value, absint( $expiration ) );
+			$result = $this->m->setByKey( $server_key, $derived_key, $value, $expiration );
 		} else {
-			$result = $this->m->set( $derived_key, $value, absint( $expiration ) );
+			$result = $this->m->set( $derived_key, $value, $expiration );
 		}
 
 		// Store in runtime cache if add was successful
@@ -1837,9 +1837,9 @@ class WP_Object_Cache {
 
 		// Save to memcached
 		if ( $byKey )
-			$result = $this->m->setMultiByKey( $server_key, $derived_items, absint( $expiration ) );
+			$result = $this->m->setMultiByKey( $server_key, $derived_items, $expiration );
 		else
-			$result = $this->m->setMulti( $derived_items, absint( $expiration ) );
+			$result = $this->m->setMulti( $derived_items, $expiration );
 
 		// Store in runtime cache if add was successful
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
