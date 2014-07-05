@@ -1603,7 +1603,7 @@ class WP_Object_Cache {
 	 * @param   string      $group      The group value appended to the $key.
 	 * @return  int|bool                Returns item's new value on success or FALSE on failure.
 	 */
-	public function incr(  $key, $offset = 1, $group = 'default' ) {
+	public function incr( $key, $offset = 1, $group = 'default' ) {
 		return $this->increment( $key, $offset, $group );
 	}
 
