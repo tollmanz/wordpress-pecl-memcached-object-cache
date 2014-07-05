@@ -845,6 +845,10 @@ class WP_Object_Cache {
 			$this->global_prefix = ( is_multisite() || defined( 'CUSTOM_USER_TABLE' ) && defined( 'CUSTOM_USER_META_TABLE' ) ) ? '' : $table_prefix;
 			$this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
 		}
+
+		// Setup cacheable values for handling expiration times
+		$this->thirty_days = 60 * 60 * 24 * 30;
+		$this->now         = time();
 	}
 
 	/**
@@ -1945,6 +1949,24 @@ class WP_Object_Cache {
 		}
 
 		return $derived_keys;
+	}
+
+	/**
+	 * Ensure that a proper expiration time is set.
+	 *
+	 * Memcached treats any value over 30 days as a timestamp. If a developer sets the expiration for greater than 30
+	 * days or less than the current timestamp, the timestamp is in the past and the value isn't cached. This function
+	 * detects values in that range and corrects them.
+	 *
+	 * @param  string|int    $expiration    The dirty expiration time.
+	 * @return string|int                   The sanitized expiration time.
+	 */
+	public function sanitize_expiration( $expiration ) {
+		if ( $expiration > $this->thirty_days && $expiration <= $this->now ) {
+			$expiration = $expiration + $this->now;
+		}
+
+		return $expiration;
 	}
 
 	/**

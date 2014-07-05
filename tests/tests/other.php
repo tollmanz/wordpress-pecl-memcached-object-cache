@@ -153,4 +153,24 @@ class MemcachedUnitTestsAll extends MemcachedUnitTests {
 		$this->object_cache->switch_to_blog( get_current_blog_id() );
 		$this->assertEquals( $val2, $this->object_cache->get( $key, 'global-cache-test' ) );
 	}
+
+	public function test_sanitize_expiration_leaves_value_untouched_if_less_than_thirty_days() {
+		$time = 5;
+		$this->assertEquals( $time, $this->object_cache->sanitize_expiration( $time ) );
+	}
+
+	public function test_sanitize_expiration_leaves_value_untouched_if_exactly_thirty_days() {
+		$time = 60 * 60 * 24 * 30;
+		$this->assertEquals( $time, $this->object_cache->sanitize_expiration( $time ) );
+	}
+
+	public function test_sanitize_expiration_should_adjust_expiration_if_later_than_now() {
+		$time = 60 * 60 * 24 * 31;
+		$now = time();
+
+		// We need to manually set the internal timer to make sure we get the right value in testing
+		$this->object_cache->now = $now;
+
+		$this->assertEquals( $time + $now, $this->object_cache->sanitize_expiration( $time ) );
+	}
 }
