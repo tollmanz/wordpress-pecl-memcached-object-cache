@@ -39,16 +39,10 @@ install_test_suite() {
 		local ioption='-i'
 	fi
 
-	if [ $WP_VERSION == '3.6.1' ] || [ $WP_VERSION == '3.7.3' ]; then
-		local BRANCH='tags/3.7.3/'
-	else
-		local BRANCH='trunk/'
-	fi
-
 	# set up testing suite
 	mkdir -p $WP_TESTS_DIR
 	cd $WP_TESTS_DIR
-	svn co --quiet http://develop.svn.wordpress.org/${BRANCH}tests/phpunit/includes/
+	svn co --quiet http://develop.svn.wordpress.org/trunk/tests/phpunit/includes/
 
 	wget -nv -O wp-tests-config.php http://develop.svn.wordpress.org/trunk/wp-tests-config-sample.php
 	sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR':" wp-tests-config.php
@@ -56,6 +50,19 @@ install_test_suite() {
 	sed $ioption "s/yourusernamehere/$DB_USER/" wp-tests-config.php
 	sed $ioption "s/yourpasswordhere/$DB_PASS/" wp-tests-config.php
 	sed $ioption "s|localhost|${DB_HOST}|" wp-tests-config.php
+
+	# Grab the cache tests from core to test against them
+	mkdir -p $WP_TESTS_DIR/tests
+	wget -nv -O $WP_TESTS_DIR/tests/cache.php http://develop.svn.wordpress.org/trunk/tests/phpunit/tests/cache.php
+
+	# Setup memcached servers
+	echo 'global $memcached_servers;' >> wp-tests-config.php
+	echo '$memcached_servers = array(' >> wp-tests-config.php
+	echo '	array(' >> wp-tests-config.php
+	echo '		"127.0.0.1",' >> wp-tests-config.php
+	echo '		11211' >> wp-tests-config.php
+	echo '	)' >> wp-tests-config.php
+	echo ');' >> wp-tests-config.php
 }
 
 install_db() {

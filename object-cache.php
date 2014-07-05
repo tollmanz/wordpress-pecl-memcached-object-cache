@@ -1131,6 +1131,21 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Decrement a numeric item's value.
+	 *
+	 * Alias for $this->decrement. Other caching backends use this abbreviated form of the function. It *may* cause
+	 * breakage somewhere, so it is nice to have. This function will also allow the core unit tests to pass.
+	 *
+	 * @param string    $key    The key under which to store the value.
+	 * @param int       $offset The amount by which to decrement the item's value.
+	 * @param string    $group  The group value appended to the $key.
+	 * @return int|bool         Returns item's new value on success or FALSE on failure.
+	 */
+	public function decr( $key, $offset = 1, $group = 'default' ) {
+		return $this->decrement( $key, $offset, $group );
+	}
+
+	/**
 	 * Remove the item from the cache.
 	 *
 	 * Remove an item from memcached with identified by $key after $time seconds. The
@@ -1749,10 +1764,11 @@ class WP_Object_Cache {
 		}
 
 		// Save to Memcached
-		if ( $byKey )
+		if ( $byKey ) {
 			$result = $this->m->setByKey( $server_key, $derived_key, $value, absint( $expiration ) );
-		else
+		} else {
 			$result = $this->m->set( $derived_key, $value, absint( $expiration ) );
+		}
 
 		// Store in runtime cache if add was successful
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
@@ -1965,6 +1981,10 @@ class WP_Object_Cache {
 	 * @param   mixed       $value          Object value.
 	 */
 	public function add_to_internal_cache( $derived_key, $value ) {
+		if ( is_object( $value ) ) {
+			$value = clone $value;
+		}
+
 		$this->cache[$derived_key] = $value;
 	}
 
