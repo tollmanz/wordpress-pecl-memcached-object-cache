@@ -51,6 +51,9 @@ install_test_suite() {
 	sed $ioption "s/yourpasswordhere/$DB_PASS/" wp-tests-config.php
 	sed $ioption "s|localhost|${DB_HOST}|" wp-tests-config.php
 
+	# Grab the cache tests from core to test against them
+	svn co --quiet http://develop.svn.wordpress.org/trunk/tests/phpunit/tests/cache.php tests/cache.php
+
 	# Setup memcached servers
 	echo 'global $memcached_servers;' >> wp-tests-config.php
 	echo '$memcached_servers = array(' >> wp-tests-config.php
