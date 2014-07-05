@@ -39,16 +39,10 @@ install_test_suite() {
 		local ioption='-i'
 	fi
 
-	if [ $WP_VERSION == '3.6.1' ] || [ $WP_VERSION == '3.7.3' ]; then
-		local BRANCH='tags/3.7.3/'
-	else
-		local BRANCH='trunk/'
-	fi
-
 	# set up testing suite
 	mkdir -p $WP_TESTS_DIR
 	cd $WP_TESTS_DIR
-	svn co --quiet http://develop.svn.wordpress.org/${BRANCH}tests/phpunit/includes/
+	svn co --quiet http://develop.svn.wordpress.org/trunk/tests/phpunit/includes/
 
 	wget -nv -O wp-tests-config.php http://develop.svn.wordpress.org/trunk/wp-tests-config-sample.php
 	sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR':" wp-tests-config.php
