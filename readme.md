@@ -135,7 +135,7 @@ php > echo $m->get( 'foo' ) . "\n";
 	}
 	```
 
-	After adding the code, reload your WordPress site twice. On the second load, you should see a success message printed at the top of the page.
+	After adding the code, reload your WordPress site twice. On the second load, you should see a success message printed at the top of the page. Remove the MU plugin after you've verified the setup.
 
 ## Authors
 
