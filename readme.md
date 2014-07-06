@@ -2,11 +2,11 @@
 
 ## Overview
 
-A WordPress object cache backend that implements all available methods in the [Memcached PECL extension](http://www.php.net/manual/en/class.memcached.php). For a detailed account of how this differs from a Memcache PECL backend (note the inclusion/exclusion of the "d"), read the [article I wrote on the topic](http://tollmanz.com/wordpress-memcached-object-cache/).
+This project is a WordPress object cache backend that implements all available methods in the [Memcached PECL extension](http://www.php.net/manual/en/class.memcached.php). For a detailed account of how this differs from a Memcache PECL backend (note the inclusion/exclusion of the "d"), read the [article I wrote on the topic](http://tollmanz.com/wordpress-memcached-object-cache/).
 
 ## Installation
 
-1. Install the Memcached key-value store daemon. Memcached should be available via your favorite package manager in your Linux distribution of choice. 
+1. Install the Memcached daemon. Memcached should be available via your favorite package manager in your Linux distribution of choice. 
 
 	For Ubuntu and Debian:
 
@@ -18,6 +18,8 @@ apt-get install memcached
 	```bash
 yum install memcached
 	```
+
+	Note that you will likely want to review the Memcached configuration [directives](http://serverfault.com/questions/347621/memcache-basic-configuration). To get the best results from Memcached, you will need to configure it for your system and use case.
 
 1. Start the Memcached daemon:
 
@@ -49,7 +51,7 @@ VERSION 1.4.14 (Ubuntu)
 
 	1. Exit Telnet by typing `ctrl` + `]`, hitting `enter`, then typing `quit` and pressing `enter`.
 
-1. Install the Memcached PECL extension on your server. Note that there are two different PHP interfaces for Memcached, one is named PECL Memcache and the other, PECL Memcached. The "d" at the end of Memcached is extremely important in this case. You should be able to install PECL Memcached from your package manager for your Linux distro. 
+1. Install the Memcached PECL extension on your server. Note that there are two different PHP interfaces for Memcached; one is named PECL Memcache and the other, PECL Memcached. The "d" at the end of Memcached is extremely important in this case. You should be able to install PECL Memcached from your package manager for your Linux distro. 
 
 	For Ubuntu and Debian:
 
