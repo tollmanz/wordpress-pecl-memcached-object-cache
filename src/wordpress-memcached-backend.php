@@ -9,3 +9,7 @@
  * License:        GPLv2 or later
  * License URI:    http://www.gnu.org/licenses/gpl-2.0.html
  */
+
+if ( defined('WP_CLI') && WP_CLI ) {
+	include __DIR__ . '/wp-cli/command.php';
+}
