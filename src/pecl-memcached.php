@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:    WordPress Memcached Backend
+ * Plugin Name:    PECL Memcached Object Cache
  * Plugin URI:     https://github.com/tollmanz/wordpress-memcached-backend
  * Description:    Object cache drop-in using the Memcached PECL extension to interface with Memcached.
  * Version:        1.0.0.
