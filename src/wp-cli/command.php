@@ -82,19 +82,6 @@ class Memcached_Command extends WP_CLI_Command {
 
 		return false;
 	}
-
-	private function _get_memcached_daemon_version() {
-		$cmd = 'memcached -h';
-		exec( $cmd, $output, $return );
-
-		if ( 0 === $return ) {
-			if ( isset( $output[0] ) && 0 === strpos( $output[0], 'memcached' ) ) {
-				return trim( str_replace( 'memcached', '', $output[0] ) );
-			}
-		}
-
-		return false;
-	}
 }
 
 WP_CLI::add_command( 'mem', 'Memcached_Command' );
