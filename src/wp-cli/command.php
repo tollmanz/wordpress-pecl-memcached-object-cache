@@ -52,6 +52,31 @@ class Memcached_Command extends WP_CLI_Command {
 		$table->display();
 	}
 
+	/**
+	 * Install the object cache by symlinking object-cache.php into place.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp mem install
+	 */
+	function install( $args, $assoc_args ) {
+		$object_cache = 'object-cache.php';
+
+		// Set the target and link paths
+		$target = trailingslashit( zdt_pecl_memcached_object_cache()->root_dir ) . $object_cache;
+		$link   = trailingslashit( WP_CONTENT_DIR ) . $object_cache;
+
+		// Create the symlink
+		$cmd = 'ln -nfs ' . $target . ' ' . $link;
+		exec( $cmd, $output, $return );
+
+		if ( readlink( $link ) === $target ) {
+			WP_CLI::success( 'The PECL Memcached Object Cache was successfully installed.' );
+		} else {
+			WP_CLI::error( 'The PECL Memcached Object Cache could not be installed.' );
+		}
+	}
+
 	private function _test_for_memcached_extension() {
 		return ( class_exists( 'Memcached' ) && extension_loaded( 'memcached' ) );
 	}
