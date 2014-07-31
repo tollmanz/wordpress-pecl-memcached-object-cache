@@ -10,23 +10,71 @@ class Memcached_Command extends WP_CLI_Command {
 	 *     wp mem preflight
 	 */
 	function preflight( $args, $assoc_args ) {
-		$is_memcached_available = $this->_test_for_memcached_extension();
+		$success = '✓';
+		$failure = '✖';
 
-		$this->_test_for_memcached_daemon_availability();
+		// Organize the results
+		$data = array(
+			array(
+				'Memcached PECL extension',
+				( $this->_test_for_memcached_extension() ) ? $success : $failure,
+			),
+			array(
+				'Connect to Memcached via PHP',
+				( $this->_test_for_connect_to_memcached_from_php() ) ? $success : $failure,
+			),
+			array(
+				'Memcached available via CLI',
+				( $this->_test_for_memcached_daemon_via_command_line() ) ? $success : $failure,
+			),
+		);
+
+		// Display results
+		$table = new \cli\Table();
+		$table->setHeaders( array( 'Check', 'Result' ) );
+		$table->setRows( $data );
+		$table->display();
 	}
 
 	private function _test_for_memcached_extension() {
 		return ( class_exists( 'Memcached' ) && extension_loaded( 'memcached' ) );
 	}
 
-	private function _test_for_memcached_daemon_availability() {
-		// First attempt to see if connection can be made via the PHP interface
+	private function _test_for_connect_to_memcached_from_php() {
 		if ( $this->_test_for_memcached_extension() ) {
 			$m = new Memcached();
 			if ( true === $m->addServer( '127.0.0.1', 11211 )  ) {
 				return true;
 			}
 		}
+
+		return false;
+	}
+
+	private function _test_for_memcached_daemon_via_command_line() {
+		$cmd = 'memcached -h';
+		exec( $cmd, $output, $return );
+
+		if ( 0 === $return ) {
+			if ( isset( $output[0] ) && 0 === strpos( $output[0], 'memcached' ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function _get_memcached_daemon_version() {
+		$cmd = 'memcached -h';
+		exec( $cmd, $output, $return );
+
+		if ( 0 === $return ) {
+			if ( isset( $output[0] ) && 0 === strpos( $output[0], 'memcached' ) ) {
+				return trim( str_replace( 'memcached', '', $output[0] ) );
+			}
+		}
+
+		return false;
 	}
 }
 
