@@ -27,6 +27,10 @@ class Memcached_Command extends WP_CLI_Command {
 				'Memcached available via CLI',
 				( $this->_test_for_memcached_daemon_via_command_line() ) ? $success : $failure,
 			),
+			array(
+				'Memcached stores content',
+				( $this->_test_for_storing_content() ) ? $success : $failure,
+			),
 		);
 
 		// Display results
@@ -57,6 +61,21 @@ class Memcached_Command extends WP_CLI_Command {
 
 		if ( 0 === $return ) {
 			if ( isset( $output[0] ) && 0 === strpos( $output[0], 'memcached' ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function _test_for_storing_content() {
+		if ( true === $this->_test_for_connect_to_memcached_from_php() ) {
+			$m = new Memcached();
+			$m->addServer( '127.0.0.1', 11211 );
+			$m->add( 'memtest', 9 );
+
+			if ( 9 === $m->get( 'memtest' ) ) {
+				$m->delete( 'memtest' );
 				return true;
 			}
 		}
