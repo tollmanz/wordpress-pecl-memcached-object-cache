@@ -36,8 +36,12 @@ class Memcached_Command extends WP_CLI_Command {
 				( $this->_test_for_storing_content() ) ? $success : $failure,
 			),
 			array(
-				'object-cache.php exists',
+				'`object-cache.php` exists',
 				( $this->_test_for_existence_of_object_cache() ) ? $success : $failure,
+			),
+			array(
+				'Object cache stores content',
+				( $this->_test_for_wp_object_cache_storing_content() ) ? $success : $failure,
 			),
 		);
 
@@ -99,6 +103,19 @@ class Memcached_Command extends WP_CLI_Command {
 
 	private function _test_for_existence_of_object_cache() {
 		return file_exists( trailingslashit( WP_CONTENT_DIR ) . 'object-cache.php' );
+	}
+
+	private function _test_for_wp_object_cache_storing_content() {
+		if ( function_exists( 'wp_cache_add' ) && function_exists( 'wp_cache_get' ) && function_exists( 'wp_cache_delete' ) ) {
+			if ( true === wp_cache_add( 'memtest', 9 ) ) {
+				if ( 9 === wp_cache_get( 'memtest' ) ) {
+					wp_cache_delete( 'memtest' );
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }
 
