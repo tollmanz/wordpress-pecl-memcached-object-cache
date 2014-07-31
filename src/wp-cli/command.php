@@ -77,6 +77,33 @@ class Memcached_Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Get the memcached stats.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp mem stats
+	 */
+	function stats( $args, $assoc_args ) {
+		$stats = wp_cache_get_stats();
+
+		foreach ( $stats as $server => $data ) {
+			WP_CLI::line( 'Stats for ' . $server );
+
+			$row_data = array();
+
+			foreach ( $data as $key => $value ) {
+				$row_data[] = array( $key, $value );
+			}
+
+			// Display results
+			$table = new \cli\Table();
+			$table->setHeaders( array( 'Statistic', 'Value' ) );
+			$table->setRows( $row_data );
+			$table->display();
+		}
+	}
+
 	private function _test_for_memcached_extension() {
 		return ( class_exists( 'Memcached' ) && extension_loaded( 'memcached' ) );
 	}
