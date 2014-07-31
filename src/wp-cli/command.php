@@ -88,7 +88,7 @@ class Memcached_Command extends WP_CLI_Command {
 		$stats = wp_cache_get_stats();
 
 		foreach ( $stats as $server => $data ) {
-			WP_CLI::line( 'Stats for ' . $server );
+			WP_CLI::line( "\n" . 'Stats for ' . $server );
 
 			$row_data = array();
 
