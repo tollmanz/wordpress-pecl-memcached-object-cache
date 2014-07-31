@@ -7,9 +7,9 @@ class Memcached_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp mem preflight
+	 *     wp mem check
 	 */
-	function preflight( $args, $assoc_args ) {
+	function check( $args, $assoc_args ) {
 		$success = '✓';
 		$failure = '✖';
 
