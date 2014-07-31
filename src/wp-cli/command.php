@@ -28,6 +28,10 @@ class Memcached_Command extends WP_CLI_Command {
 				( $this->_test_for_memcached_daemon_via_command_line() ) ? $success : $failure,
 			),
 			array(
+				'Memcached available via wp-config.php config',
+				( $this->_test_for_connecting_to_memcached_via_wp_config_values() ) ? $success : $failure,
+			),
+			array(
 				'Memcached stores content',
 				( $this->_test_for_storing_content() ) ? $success : $failure,
 			),
@@ -66,6 +70,12 @@ class Memcached_Command extends WP_CLI_Command {
 		}
 
 		return false;
+	}
+
+	private function _test_for_connecting_to_memcached_via_wp_config_values() {
+		global $memcached_servers;
+		$m = new Memcached();
+		return ( ! empty( $memcached_servers ) && $m->addServers( $memcached_servers ) );
 	}
 
 	private function _test_for_storing_content() {
