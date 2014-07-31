@@ -28,7 +28,7 @@ class Memcached_Command extends WP_CLI_Command {
 				( $this->_test_for_memcached_daemon_via_command_line() ) ? $success : $failure,
 			),
 			array(
-				'Memcached available via wp-config.php config',
+				'Memcached available via `wp-config.php` config',
 				( $this->_test_for_connecting_to_memcached_via_wp_config_values() ) ? $success : $failure,
 			),
 			array(
