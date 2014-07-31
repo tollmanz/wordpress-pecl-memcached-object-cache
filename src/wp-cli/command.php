@@ -35,6 +35,10 @@ class Memcached_Command extends WP_CLI_Command {
 				'Memcached stores content',
 				( $this->_test_for_storing_content() ) ? $success : $failure,
 			),
+			array(
+				'object-cache.php exists',
+				( $this->_test_for_existence_of_object_cache() ) ? $success : $failure,
+			),
 		);
 
 		// Display results
@@ -91,6 +95,10 @@ class Memcached_Command extends WP_CLI_Command {
 		}
 
 		return false;
+	}
+
+	private function _test_for_existence_of_object_cache() {
+		return file_exists( trailingslashit( WP_CONTENT_DIR ) . 'object-cache.php' );
 	}
 }
 
