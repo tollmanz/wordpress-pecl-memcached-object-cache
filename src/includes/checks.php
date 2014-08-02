@@ -92,7 +92,8 @@ function pmemd_test_for_storing_content() {
  * @return bool    True if object-cache.php is installed; False if it is not.
  */
 function pmemd_test_for_existence_of_object_cache() {
-	return file_exists( trailingslashit( WP_CONTENT_DIR ) . 'object-cache.php' );
+	$file_path = trailingslashit( WP_CONTENT_DIR ) . 'object-cache.php';
+	return file_exists( $file_path ) || is_link( $file_path );
 }
 
 /**
