@@ -90,6 +90,9 @@ class ZDT_PECL_Memcached_Object_Cache {
 		$this->file_path = $this->root_dir . '/' . basename( __FILE__ );
 		$this->url_base  = untrailingslashit( plugins_url( '/', __FILE__ ) );
 
+		// Include dependencies
+		include $this->root_dir . '/includes/checks.php';
+
 		if ( defined('WP_CLI') && WP_CLI ) {
 			include $this->root_dir . '/wp-cli/command.php';
 		}
