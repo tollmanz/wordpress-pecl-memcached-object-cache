@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Define the "mem" WP CLI command.
+ *
+ * @since 1.0.0.
+ */
 class Memcached_Command extends WP_CLI_Command {
 
 	/**
 	 * Tests if an environment can use the PECL Memcached Object Cache.
 	 *
-	 * ## EXAMPLES
+	 * @since  1.0.0.
 	 *
-	 *     wp mem check
+	 * @return void
 	 */
-	function check( $args, $assoc_args ) {
+	function check() {
 		$success = '✓';
 		$failure = '✖';
 
@@ -55,11 +60,11 @@ class Memcached_Command extends WP_CLI_Command {
 	/**
 	 * Install the object cache by symlinking object-cache.php into place.
 	 *
-	 * ## EXAMPLES
+	 * @since  1.0.0.
 	 *
-	 *     wp mem install
+	 * @return void
 	 */
-	function install( $args, $assoc_args ) {
+	function install() {
 		$object_cache = 'object-cache.php';
 
 		// Set the target and link paths
@@ -70,6 +75,7 @@ class Memcached_Command extends WP_CLI_Command {
 		$cmd = 'ln -nfs ' . $target . ' ' . $link;
 		exec( $cmd, $output, $return );
 
+		// Test that the object cache is now in place
 		if ( readlink( $link ) === $target ) {
 			WP_CLI::success( 'The PECL Memcached Object Cache was successfully installed.' );
 		} else {
@@ -80,11 +86,11 @@ class Memcached_Command extends WP_CLI_Command {
 	/**
 	 * Get the memcached stats.
 	 *
-	 * ## EXAMPLES
+	 * @since  1.0.0.
 	 *
-	 *     wp mem stats
+	 * @return void
 	 */
-	function stats( $args, $assoc_args ) {
+	function stats() {
 		$stats = pmem_get_stats();
 
 		foreach ( $stats as $server => $data ) {
@@ -92,6 +98,7 @@ class Memcached_Command extends WP_CLI_Command {
 
 			$row_data = array();
 
+			// Reorganize data into array appropriate for table display
 			foreach ( $data as $key => $value ) {
 				$row_data[] = array( $key, $value );
 			}
@@ -107,11 +114,21 @@ class Memcached_Command extends WP_CLI_Command {
 	/**
 	 * Get an individual memcached stat.
 	 *
-	 * ## EXAMPLES
+	 * ## OPTIONS
 	 *
-	 *     wp mem stat <name>
+	 * <statistic>
+	 * : The statistic to get.
+	 *
+	 * <server>
+	 * : The server to get the statistic from (optional).
+	 *
+	 *
+	 * @since  1.0.0.
+	 *
+	 * @param  array    $args    Args passed to command. 1: statistic to return, 2: server to use (optional)
+	 * @return void
 	 */
-	function stat( $args, $assoc_args ) {
+	function stat( $args ) {
 		if ( 1 === count( $args ) ) {
 			list( $name ) = $args;
 			$server = '';
@@ -132,7 +149,7 @@ class Memcached_Command extends WP_CLI_Command {
 			$table->display();
 
 		// Print results for single server
-		} elseif ( ! empty( $name ) && ! empty( $server ) && ! empty( $stats ) ) {
+		} elseif ( ! empty( $name ) && ! empty( $server ) && ! empty( $stats ) && isset( $stats[0][1] ) ) {
 			WP_CLI::line( $stats[0][1] );
 		}
 	}
