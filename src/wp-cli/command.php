@@ -85,7 +85,7 @@ class Memcached_Command extends WP_CLI_Command {
 	 *     wp mem stats
 	 */
 	function stats( $args, $assoc_args ) {
-		$stats = wp_cache_get_stats();
+		$stats = pmem_get_stats();
 
 		foreach ( $stats as $server => $data ) {
 			WP_CLI::line( "\n" . 'Stats for ' . $server );
@@ -101,6 +101,39 @@ class Memcached_Command extends WP_CLI_Command {
 			$table->setHeaders( array( 'Statistic', 'Value' ) );
 			$table->setRows( $row_data );
 			$table->display();
+		}
+	}
+
+	/**
+	 * Get an individual memcached stat.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp mem stat <name>
+	 */
+	function stat( $args, $assoc_args ) {
+		if ( 1 === count( $args ) ) {
+			list( $name ) = $args;
+			$server = '';
+		} elseif ( 2 === count( $args ) ) {
+			list( $name, $server ) = $args;
+		} else {
+			return;
+		}
+
+		$stats = pmem_get_stat( $name, $server );
+
+		// Print results for multiple servers
+		if ( ! empty( $name ) && empty( $server ) && ! empty( $stats ) ) {
+			// Display results
+			$table = new \cli\Table();
+			$table->setHeaders( array( 'Server', $name ) );
+			$table->setRows( $stats );
+			$table->display();
+
+		// Print results for single server
+		} elseif ( ! empty( $name ) && ! empty( $server ) && ! empty( $stats ) ) {
+			WP_CLI::line( $stats[0][1] );
 		}
 	}
 }

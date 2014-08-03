@@ -92,6 +92,7 @@ class ZDT_PECL_Memcached_Object_Cache {
 
 		// Include dependencies
 		include $this->root_dir . '/includes/checks.php';
+		include $this->root_dir . '/includes/stats.php';
 
 		if ( defined('WP_CLI') && WP_CLI ) {
 			include $this->root_dir . '/wp-cli/command.php';
