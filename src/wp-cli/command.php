@@ -15,8 +15,13 @@ class Memcached_Command extends WP_CLI_Command {
 	 * @return void
 	 */
 	function check() {
-		$success = '✓';
-		$failure = '✖';
+		/**
+		 * Colorizing the results leads to the table display incorrectly rendering the right hand border. This is due to
+		 * a bug in WP CLI (https://github.com/wp-cli/php-cli-tools/issues/59). Colors are pretty important to communicate
+		 * a failed checked, so this is implemented with a broken table display.
+		 */
+		$success = \cli\Colors::colorize( "%G✓%n", true );
+		$failure = \cli\Colors::colorize( "%R✖%n", true );
 
 		// Organize the results
 		$data = array(
