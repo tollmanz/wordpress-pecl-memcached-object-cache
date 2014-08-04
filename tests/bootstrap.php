@@ -16,7 +16,7 @@ if ( ! $_core_dir ) {
  * Load in the plugin files.
  */
 function _manually_load_plugin() {
-	require dirname( __FILE__ ) . '/../src/wordpress-memcached-backend.php';
+	require dirname( __FILE__ ) . '/../src/pecl-memcached.php';
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
