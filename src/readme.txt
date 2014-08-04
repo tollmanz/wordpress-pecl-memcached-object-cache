@@ -1,34 +1,22 @@
-[![Build Status](https://travis-ci.org/tollmanz/wordpress-memcached-backend.png?branch=master)](https://travis-ci.org/tollmanz/wordpress-memcached-backend)
+=== Plugin Name ===
+Contributors: tollmanz
+Donate link: http://tollmanz.com
+Tags: performance, object cache, drop-in
+Requires at least: 3.4
+Tested up to: 3.9.1
+Stable tag: 1.0.0
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-## Overview
+Object cache drop using the Memcached PECL extension to interface with Memcached.
+
+== Description ==
 
 This project is a WordPress object cache backend that implements all available methods in the [Memcached PECL extension](http://www.php.net/manual/en/class.memcached.php). For a detailed account of how this differs from a Memcache PECL backend (note the inclusion/exclusion of the "d"), read the [article I wrote on the topic](http://tollmanz.com/wordpress-memcached-object-cache/).
 
-## Installation
+== Installation ==
 
-There are two methods for installing the WordPress PECL Memcached Object Cache: 1) WP CLI, 2) Manual. If you have [WP CLI](http://wp-cli.org/) installed on your server, the WP CLI method is highly recommended as it is easy and automated.
-
-### WP CLI
-
-There are two major advantages to installing the WordPress PECL Memcached Object Cache via WP CLI: 1) it's remarkably easy as it is accomplished with two commands, and 2) it installs the library via a plugin, allowing you to keep it up to date via one-click updates from WordPress.org. The only disadvantage of this method is that WP CLI is a hard dependency. That said, WP CLI is really something you should have available on your server to make your life easier for countless reasons.
-
-1. Install the PECL Memcached Object Cache plugin from WordPress.org:
-
-	```
-	wp plugin install pecl-memcached --activate
-	```
-	
-1. After installing the plugin, complete the installation by symlinking `object-cache.php` into the `wP_CONTENT_DIR` location:
-
-	```
-	wp mem install
-	```
-	
-To check the rest of your configuration, run `wp mem check`. If you see checkmarks for all items, your environment is ready to use this cache. If you see an `x` for any items, you will need to resolve the item for the library to function properly.
-
-### Manual
-
-1. Install the Memcached daemon. Memcached should be available via your favorite package manager in your Linux distribution of choice. 
+1. Install the Memcached daemon. Memcached should be available via your favorite package manager in your Linux distribution of choice.
 
 	For Ubuntu and Debian:
 
@@ -49,14 +37,14 @@ yum install memcached
 service memcached restart
 	```
 
-1. Verify that Memcached is installed and running. 
+1. Verify that Memcached is installed and running.
 
 	1. From your server, `telnet` into the Memcached server
 
 		```bash
 telnet localhost 11211
 		```
-		
+
 		You should see output like:
 
 		```bash
@@ -73,7 +61,7 @@ VERSION 1.4.14 (Ubuntu)
 
 	1. Exit Telnet by typing `ctrl` + `]`, hitting `enter`, then typing `quit` and pressing `enter`.
 
-1. Install the Memcached PECL extension on your server. Note that there are two different PHP interfaces for Memcached; one is named PECL Memcache and the other, PECL Memcached. The "d" at the end of Memcached is extremely important in this case. You should be able to install PECL Memcached from your package manager for your Linux distro. 
+1. Install the Memcached PECL extension on your server. Note that there are two different PHP interfaces for Memcached; one is named PECL Memcache and the other, PECL Memcached. The "d" at the end of Memcached is extremely important in this case. You should be able to install PECL Memcached from your package manager for your Linux distro.
 
 	For Ubuntu and Debian:
 
@@ -159,7 +147,12 @@ php > echo $m->get( 'foo' ) . "\n";
 
 	After adding the code, reload your WordPress site twice. On the second load, you should see a success message printed at the top of the page. Remove the MU plugin after you've verified the setup.
 
-## Authors
+== Changelog ==
 
-* Zack Tollman
-* 10up
+= 1.0.0 =
+* Initial release
+
+== Upgrade Notice ==
+
+= 1.0.0 =
+* Initial release

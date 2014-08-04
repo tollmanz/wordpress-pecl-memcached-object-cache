@@ -12,8 +12,17 @@ if ( ! $_core_dir ) {
 	$_core_dir = '/tmp/wordpress';
 }
 
+/**
+ * Load in the plugin files.
+ */
+function _manually_load_plugin() {
+	require dirname( __FILE__ ) . '/../src/wordpress-memcached-backend.php';
+}
+
+tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
+
 // Easiest way to get this to where WordPress will load it
-copy( dirname( __FILE__ ) . '/../object-cache.php', $_core_dir . '/wp-content/object-cache.php' );
+copy( dirname( __FILE__ ) . '/../src/object-cache.php', $_core_dir . '/wp-content/object-cache.php' );
 
 require $_tests_dir . '/includes/bootstrap.php';
 require $_tests_dir . '/tests/cache.php';
