@@ -6,6 +6,28 @@ This project is a WordPress object cache backend that implements all available m
 
 ## Installation
 
+There are two methods for installing the WordPress PECL Memcached Object Cache: 1) WP CLI, 2) Manual. If you have [WP CLI](http://wp-cli.org/) installed on your server, the WP CLI method is highly recommended as it is easy and automated.
+
+### WP CLI
+
+There are two major advantages to installing the WordPress PECL Memcached Object Cache via WP CLI: 1) it's remarkably easy as it is accomplished with two commands, and 2) it installs the library via a plugin, allowing you to keep it up to date via one-click updates from WordPress.org. The only disadvantage of this method is that WP CLI is a hard dependency. That said, WP CLI is really something you should have available on your server to make your life easier for countless reasons.
+
+1. Install the PECL Memcached Object Cache plugin from WordPress.org:
+
+	```
+	wp plugin install pecl-memcached --activate
+	```
+	
+1. After installing the plugin, complete the installation by symlinking `object-cache.php` into the `wP_CONTENT_DIR` location:
+
+	```
+	wp mem install
+	```
+	
+To check the rest of your configuration, run `wp mem check`. If you see checkmarks for all items, your environment is ready to use this cache. If you see an `x` for any items, you will need to resolve the item for the library to function properly.
+
+### Manual
+
 1. Install the Memcached daemon. Memcached should be available via your favorite package manager in your Linux distribution of choice. 
 
 	For Ubuntu and Debian:
