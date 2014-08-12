@@ -65,7 +65,7 @@ apt-get install php5-memcached
 yum install php-pecl-memcached
 	```
 
-	Note that if you have a more custom installation of PHP, you might need to take some extra steps to link the PECL Memcached extension to PHP. If you are setting this up using your package manager's version of PHP and PECL Memcached, this should not be necessary.
+	Note that if you have a more custom installation of PHP, you might need to take some extra steps to link the PECL Memcached extension to PHP. If you are setting this up using your package manager's version of PHP and PECL Memcached, this should not be necessary. For example, many `yum.conf` files will exclude packages that begin with `php`. You may be able to modify the configuration file as necessary to install this package.
 
 1. Verify that the Memcached daemon is running and accessible via the PECL Memcached extension in PHP. The easiest way to test this is to run a simple PHP script that connects to Memcached and tries to set and retrieve a value.
 
