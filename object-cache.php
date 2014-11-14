@@ -1,4 +1,13 @@
 <?php
+/*
+Plugin Name: WordPress pecl memcached object cache
+Description: The real Memcached (not Memcache) backend for the WP Object Cache.
+Version:
+Plugin URI: https://github.com/tollmanz/wordpress-pecl-memcached-object-cache
+Author: Zack Tollman
+Author URI: http://tollmanz.com/
+*/
+
 /**
  * Adds a value to cache.
  *
