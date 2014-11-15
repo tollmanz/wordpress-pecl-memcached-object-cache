@@ -809,6 +809,13 @@ class WP_Object_Cache {
 	public $blog_prefix = '';
 
 	/**
+	 * Salt allowing cache to be faux-flushed.
+	 *
+	 * @var string
+	 */
+	protected $faux_flush_key = '';
+
+	/**
 	 * Instantiate the Memcached class.
 	 *
 	 * Instantiates the Memcached class and returns adds the servers specified
@@ -849,6 +856,17 @@ class WP_Object_Cache {
 		// Setup cacheable values for handling expiration times
 		$this->thirty_days = 60 * 60 * 24 * 30;
 		$this->now         = time();
+
+		// enable faux-flush of cache, so that websites sharing a Memcached instance don't flush each other
+		if ( defined( 'WP_CACHE_FAUX_FLUSH' ) && WP_CACHE_FAUX_FLUSH ) {
+			$this->faux_flush_key = $this->get( 'memcached_faux_flush_key', 'site-options' );
+			if ( empty( $this->faux_flush_key ) ) {
+				$this->replaceFauxFlushKey();
+			}
+
+			// enable admin menu items
+			add_action('admin_menu', array( $this, 'adminMenu' ) );
+		}
 	}
 
 	/**
@@ -1247,7 +1265,14 @@ class WP_Object_Cache {
 	 * @return  bool                Returns TRUE on success or FALSE on failure.
 	 */
 	public function flush( $delay = 0 ) {
-		$result = $this->m->flush( $delay );
+		if ( $this->faux_flush_key ) {
+			// don't actually flush Memcached, just change a salt used to access cached items; they are now "forgotten"
+			$result = $this->replaceFauxFlushKey();
+		}
+		else {
+			// ask Memcached to flush
+			$result = $this->m->flush( $delay );
+		}
 
 		// Only reset the runtime cache if memcached was properly flushed
 		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
@@ -1912,7 +1937,10 @@ class WP_Object_Cache {
 		else
 			$prefix = $this->blog_prefix;
 
-		return preg_replace( '/\s+/', '', WP_CACHE_KEY_SALT . "$prefix$group:$key" );
+		// support faux-flush by adding a faux-flush suffix
+		$faux_flush = $this->faux_flush_key ? ':' . $this->faux_flush_key : '';
+
+		return preg_replace( '/\s+/', '', WP_CACHE_KEY_SALT . "$prefix$group:$key$faux_flush" );
 	}
 
 	/**
@@ -2103,4 +2131,98 @@ class WP_Object_Cache {
 		$blog_id           = (int) $blog_id;
 		$this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
 	}
+
+	/**
+	 * Add items to WordPress admin menu
+	 */
+	public function adminMenu() {
+		if ( is_multisite() ) {
+			// only give access to Super Admins on multisite
+			$capability = 'manage_network_options';
+		}
+		else {
+			// only give acces to Admins on single sites
+			$capability = 'manage_options';
+		}
+
+		$label = __( 'Object Caching', 'wordpress-pecl-memcached-object-cache' );
+		add_management_page( $label, $label, $capability, 'pecl-memcached', array($this, 'toolsPage'));
+	}
+
+	/**
+	 * Manage the tools page in WordPress admin.
+	 */
+	public function toolsPage() {
+
+		// maybe process a faux-flush request
+		if ( ! empty( $_POST[ 'submit' ] ) ) {
+			check_admin_referer( 'faux-flush', 'pecl_memcached_nonce' );
+
+			$result = $this->flush();
+
+			if ( $result ) {
+				$message = esc_html__( 'Memcached object cache was faux-flushed.', 'wordpress-pecl-memcached-object-cache' );
+			}
+			else {
+				$code = $this->getResultCode();
+				$error = sprintf( esc_html__( 'Faux-flush of object cache failed; error code = %s.', 'wordpress-pecl-memcached-object-cache' ), $code );
+			}
+		}
+
+		$form_url = admin_url( 'tools.php?page=pecl-memcached' );
+		?>
+
+		<div class="wrap">
+
+			<h2><?php esc_html_e( 'WordPress PECL Memcached Object Cache', 'wordpress-pecl-memcached-object-cache' ); ?></h2>
+
+			<p><?php esc_html_e( 'Faux-flush allows websites sharing a Memcached instance to clear the object cache without impacting each other.', 'wordpress-pecl-memcached-object-cache' ); ?></p>
+
+			<?php if ( ! empty( $message ) ): ?>
+			<div class="updated"><p><?php echo $message; ?></p></div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $error ) ): ?>
+			<div class="error"><p><?php echo $error; ?></p></div>
+			<?php endif; ?>
+
+			<form action="<?php echo $form_url; ?>" method="POST">
+				<?php submit_button( __( 'Faux-flush cache', 'wordpress-pecl-memcached-object-cache' ) ); ?>
+				<?php wp_nonce_field( 'faux-flush', 'pecl_memcached_nonce', false ); ?>
+			</form>
+
+		</div>
+
+		<?php
+	}
+
+	/**
+	 * Generate a new faux-flush key.
+	 *
+	 * This permits websites to "flush the cache" without really flushing Memcached.
+	 * The website simply "forgets" how to access the old cached data, which will eventually be evicted from the cache.
+	 *
+	 * @return  bool                    Returns TRUE on success or FALSE on failure.
+	 */
+	protected function replaceFauxFlushKey() {
+		// record old faux-flush key, and reset so that key is saved without a faux-flush key
+		$old_faux_flush_key = $this->faux_flush_key;
+		$this->faux_flush_key = '';
+
+		// generate and attempt to save new key
+		$faux_flush_key = uniqid( 'FFK' );
+		$result = $this->set( 'memcached_faux_flush_key', $faux_flush_key, 'site-options' );
+
+		if ( $result ) {
+			// accept new faux-flush key
+			$this->faux_flush_key = $faux_flush_key;
+		}
+		else {
+			// couldn't set new key, must restore old key
+			$this->faux_flush_key = $old_faux_flush_key;
+		}
+
+		return $result;
+	}
+
 }
