@@ -2136,8 +2136,17 @@ class WP_Object_Cache {
 	 * Add items to WordPress admin menu
 	 */
 	public function adminMenu() {
+		if ( is_multisite() ) {
+			// only give access to Super Admins on multisite
+			$capability = 'manage_network_options';
+		}
+		else {
+			// only give acces to Admins on single sites
+			$capability = 'manage_options';
+		}
+
 		$label = __( 'Object Caching', 'wordpress-pecl-memcached-object-cache' );
-		add_management_page( $label, $label, 'manage_options', 'pecl-memcached', array($this, 'toolsPage'));
+		add_management_page( $label, $label, $capability, 'pecl-memcached', array($this, 'toolsPage'));
 	}
 
 	/**
