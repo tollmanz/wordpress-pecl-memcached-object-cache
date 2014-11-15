@@ -2152,11 +2152,11 @@ class WP_Object_Cache {
 			$result = $this->flush();
 
 			if ( $result ) {
-				$message = esc_html( 'Memcached object cache was faux-flushed.', 'wordpress-pecl-memcached-object-cache' );
+				$message = esc_html__( 'Memcached object cache was faux-flushed.', 'wordpress-pecl-memcached-object-cache' );
 			}
 			else {
 				$code = $this->getResultCode();
-				$error = sprintf( esc_html( 'Faux-flush of object cache failed; error code = %s.', 'wordpress-pecl-memcached-object-cache' ), $code );
+				$error = sprintf( esc_html__( 'Faux-flush of object cache failed; error code = %s.', 'wordpress-pecl-memcached-object-cache' ), $code );
 			}
 		}
 
