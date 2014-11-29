@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/tollmanz/wordpress-memcached-backend.png?branch=master)](https://travis-ci.org/tollmanz/wordpress-memcached-backend)
+[![Build Status](https://travis-ci.org/tollmanz/wordpress-pecl-memcached-object-cache.svg?branch=master)](https://travis-ci.org/tollmanz/wordpress-pecl-memcached-object-cache)
 
 ## Overview
 
