@@ -899,9 +899,8 @@ class WP_Object_Cache {
 		else
 			$result = $this->m->add( $derived_key, $value, $expiration );
 
-		// Store in runtime cache if add was successful
-		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
-			$this->add_to_internal_cache( $derived_key, $value );
+		// Store in runtime cache anyway
+		$this->add_to_internal_cache( $derived_key, $value );
 
 		return $result;
 	}
