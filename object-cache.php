@@ -867,43 +867,39 @@ class WP_Object_Cache {
 	 * @param   bool        $byKey          True to store in internal cache by key; false to not store by key
 	 * @return  bool                        Returns TRUE on success or FALSE on failure.
 	 */
-	public function add( $key, $value, $group = 'default', $expiration = 0, $server_key = '', $byKey = false ) {
-		/*
-		 * Ensuring that wp_suspend_cache_addition is defined before calling, because sometimes an advanced-cache.php
-		 * file will load object-cache.php before wp-includes/functions.php is loaded. In those cases, if wp_cache_add
-		 * is called in advanced-cache.php before any more of WordPress is loaded, we get a fatal error because
-		 * wp_suspend_cache_addition will not be defined until wp-includes/functions.php is loaded.
-		 */
-		if ( function_exists( 'wp_suspend_cache_addition' ) && wp_suspend_cache_addition() ) {
-			return false;
-		}
+        public function add( $key, $value, $group = 'default', $expiration = 0, $server_key = '', $byKey = false ) {
+                /*
+                 * Ensuring that wp_suspend_cache_addition is defined before calling, because sometimes an advanced-cache.php
+                 * file will load object-cache.php before wp-includes/functions.php is loaded. In those cases, if wp_cache_add
+                 * is called in advanced-cache.php before any more of WordPress is loaded, we get a fatal error because
+                 * wp_suspend_cache_addition will not be defined until wp-includes/functions.php is loaded.
+                 */
+                if ( function_exists( 'wp_suspend_cache_addition' ) && wp_suspend_cache_addition() ) {
+                        return false;
+                }
 
-		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
+                $derived_key = $this->buildKey( $key, $group );
+                $expiration  = $this->sanitize_expiration( $expiration );
 
-		// If group is a non-Memcached group, save to runtime cache, not Memcached
-		if ( in_array( $group, $this->no_mc_groups ) ) {
+                // Skip saving to Memcached if group is a non-Memcached group
+                if ( ! in_array( $group, $this->no_mc_groups ) ) {
+                        // Save to Memcached
+                        if ( $byKey )
+                                $result = $this->m->addByKey( $server_key, $derived_key, $value, $expiration );
+                        else
+                                $result = $this->m->add( $derived_key, $value, $expiration );
+                }
 
-			// Add does not set the value if the key exists; mimic that here
-			if ( isset( $this->cache[$derived_key] ) )
-				return false;
+                // Add does not set the value if the key exists; mimic that here
+                if ( isset( $this->cache[$derived_key] ) )
+                        $result=false;
+                else{
+                        $this->add_to_internal_cache( $derived_key, $value );
+                        $result=true;
+                }
 
-			$this->add_to_internal_cache( $derived_key, $value );
-
-			return true;
-		}
-
-		// Save to Memcached
-		if ( $byKey )
-			$result = $this->m->addByKey( $server_key, $derived_key, $value, $expiration );
-		else
-			$result = $this->m->add( $derived_key, $value, $expiration );
-
-		// Store in runtime cache anyway
-		$this->add_to_internal_cache( $derived_key, $value );
-
-		return $result;
-	}
+                return $result;
+        }
 
 	/**
 	 * Adds a value to cache on a specific server.
