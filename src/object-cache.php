@@ -875,27 +875,22 @@ class WP_Object_Cache {
 		$derived_key = $this->buildKey( $key, $group );
 		$expiration  = $this->sanitize_expiration( $expiration );
 
-		// If group is a non-Memcached group, save to runtime cache, not Memcached
-		if ( in_array( $group, $this->no_mc_groups ) ) {
-
-			// Add does not set the value if the key exists; mimic that here
-			if ( isset( $this->cache[$derived_key] ) )
-				return false;
-
-			$this->add_to_internal_cache( $derived_key, $value );
-
-			return true;
+		// Skip saving to Memcached if group is a non-Memcached group
+		if ( ! in_array( $group, $this->no_mc_groups ) ) {
+			// Save to Memcached
+			if ( $byKey )
+				$result = $this->m->addByKey( $server_key, $derived_key, $value, $expiration );
+			else
+				$result = $this->m->add( $derived_key, $value, $expiration );
 		}
 
-		// Save to Memcached
-		if ( $byKey )
-			$result = $this->m->addByKey( $server_key, $derived_key, $value, $expiration );
-		else
-			$result = $this->m->add( $derived_key, $value, $expiration );
-
-		// Store in runtime cache if add was successful
-		if ( Memcached::RES_SUCCESS === $this->getResultCode() )
+		// Add does not set the value if the key exists; mimic that here
+		if ( isset( $this->cache[$derived_key] ) )
+			$result=false;
+		else{
 			$this->add_to_internal_cache( $derived_key, $value );
+			$result=true;
+		}
 
 		return $result;
 	}
