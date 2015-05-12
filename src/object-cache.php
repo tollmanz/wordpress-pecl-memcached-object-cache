@@ -826,12 +826,25 @@ class WP_Object_Cache {
 		else
 			$this->m = new Memcached( $persistent_id );
 
-		if ( isset( $memcached_servers ) )
-			$this->servers = $memcached_servers;
-		else
-			$this->servers = array( array( '127.0.0.1', 11211 ) );
+        /**
+         * Support for settings servers via "WP_MEMCACHED_SERVERS" environment variable.
+         * Example:
+         *     putenv( "WP_MEMCACHED_SERVERS=127.0.0.1:11211" );
+         * Use a semicolon to separate more servers.
+         */
+        if ( ! isset( $memcached_servers ) && ( $evn = getenv( 'WP_MEMCACHED_SERVERS' ) ) ) {
+            $env_servers = explode( ';', $evn );
+            $memcached_servers = array();
+            foreach ( $env_servers as $env_server ) {
+                if ( ! empty( $env_server ) ) {
+                    $memcached_servers[] = explode( ':', $env_server, 2 );
+                }
+            }
+        }
 
-		$this->addServers( $this->servers );
+        $this->servers = empty( $memcached_servers ) ? array( array( '127.0.0.1', 11211 ) ) : $memcached_servers;
+
+        $this->addServers( $this->servers );
 
 		/**
 		 * This approach is borrowed from Sivel and Boren. Use the salt for easy cache invalidation and for
