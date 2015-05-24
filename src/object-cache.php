@@ -826,12 +826,6 @@ class WP_Object_Cache {
 		else
 			$this->m = new Memcached( $persistent_id );
 
-		/**
-		 * Support for settings servers via "WP_MEMCACHED_SERVERS" environment variable.
-		 * Example:
-		 *     putenv( "WP_MEMCACHED_SERVERS=127.0.0.1:11211" );
-		 * Use a semicolon to separate more servers.
-		 */
 		if ( ! isset( $memcached_servers ) && ( $env = getenv( 'WP_MEMCACHED_SERVERS' ) ) ) {
 			$env_servers       = explode( ';', $env );
 			$memcached_servers = array();
