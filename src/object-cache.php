@@ -832,8 +832,8 @@ class WP_Object_Cache {
          *     putenv( "WP_MEMCACHED_SERVERS=127.0.0.1:11211" );
          * Use a semicolon to separate more servers.
          */
-        if ( ! isset( $memcached_servers ) && ( $evn = getenv( 'WP_MEMCACHED_SERVERS' ) ) ) {
-            $env_servers = explode( ';', $evn );
+        if ( ! isset( $memcached_servers ) && ( $env = getenv( 'WP_MEMCACHED_SERVERS' ) ) ) {
+            $env_servers = explode( ';', $env );
             $memcached_servers = array();
             foreach ( $env_servers as $env_server ) {
                 if ( ! empty( $env_server ) ) {
