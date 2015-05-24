@@ -826,7 +826,7 @@ class WP_Object_Cache {
 		else
 			$this->m = new Memcached( $persistent_id );
 
-		if ( ! isset( $memcached_servers ) && ( $env = getenv( 'MEMCACHED_SERVERS' ) ) ) {
+		if ( empty( $memcached_servers ) && ( $env = getenv( 'MEMCACHED_SERVERS' ) ) ) {
 			$env_servers       = explode( ';', $env );
 			$memcached_servers = array();
 
