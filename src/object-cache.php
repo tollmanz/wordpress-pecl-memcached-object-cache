@@ -829,6 +829,7 @@ class WP_Object_Cache {
 		if ( ! isset( $memcached_servers ) && ( $env = getenv( 'MEMCACHED_SERVERS' ) ) ) {
 			$env_servers       = explode( ';', $env );
 			$memcached_servers = array();
+
 			foreach ( $env_servers as $env_server ) {
 				if ( ! empty( $env_server ) ) {
 					$memcached_servers[] = explode( ':', $env_server, 2 );
