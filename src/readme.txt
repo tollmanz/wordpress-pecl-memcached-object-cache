@@ -128,6 +128,18 @@ php > echo $m->get( 'foo' ) . "\n";
 	);
 	```
 
+	Alternatively, you can configure your Memcached settings via environment variables:
+
+	```
+	putenv( "MEMCACHED_SERVERS=127.0.0.1:11211" );
+	```
+
+	Or, for multiple servers:
+
+	```
+	putenv( "MEMCACHED_SERVERS=127.0.0.1:11211;127.0.0.2:11211" );
+	```
+
 1. To test the WordPress object cache setup, add the following code as an MU plugin:
 
 	```php
