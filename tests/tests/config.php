@@ -13,11 +13,15 @@ class MemcachedConfigTest extends MemcachedUnitTests {
 	 * corresponding tearDown behavior and add our own new behavior.
 	 */
 	public function tearDown() {
-		// Avoid pollution of globals
-		unset( $GLOBALS['memcached_servers'] );
+		// Restore expected globals
+		global $memcached_servers;
+		$memcached_servers = array(
+			'default' => array( '127.0.0.1', 11211 ),
+		);
 	}
 
 	public function test_environment_variables_set_configuration_array_if_array_is_not_set() {
+		unset( $GLOBALS['memcached_servers'] );
 		putenv( 'MEMCACHED_SERVERS=127.0.0.1:11222' );
 		$cache = new WP_Object_Cache();
 
@@ -49,6 +53,7 @@ class MemcachedConfigTest extends MemcachedUnitTests {
 	}
 
 	public function test_environment_variables_set_configuration_array_for_multiple_servers() {
+		unset( $GLOBALS['memcached_servers'] );
 		putenv( 'MEMCACHED_SERVERS=127.0.0.1:11222;127.0.0.2:11222' );
 		$cache = new WP_Object_Cache();
 
