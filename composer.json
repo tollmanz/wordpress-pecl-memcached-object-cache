@@ -1,0 +1,20 @@
+{
+  "name": "tollmanz/wordpress-pecl-memcached-object-cache",
+  "type": "wordpress-plugin",
+  "license": "MIT",
+  "description": "WordPress object cache backend that implements all available methods in the Memcached PECL extension.",
+  "homepage": "https://github.com/tollmanz/wordpress-pecl-memcached-object-cache",
+  "authors": [
+    {
+      "name": "Zack Tollman",
+      "homepage": "https://www.tollmanz.com/"
+    }
+  ],
+  "keywords": ["wordpress", "memcached", "object-cache", "wp"],
+  "support": {
+    "issues": "https://github.com/tollmanz/wordpress-pecl-memcached-object-cache/issues"
+  },
+  "require": {
+    "php": ">=5.3"
+  }
+}
