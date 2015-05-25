@@ -70,4 +70,59 @@ class MemcachedConfigTest extends MemcachedUnitTests {
 
 		$this->assertEquals( $expected, $cache->servers );
 	}
+
+	public function test_environment_variables_set_configuration_array_with_weight_if_array_is_not_set() {
+		unset( $GLOBALS['memcached_servers'] );
+		putenv( 'MEMCACHED_SERVERS=127.0.0.1:11222:1' );
+		$cache = new WP_Object_Cache();
+
+		$expected = array(
+			array(
+				'127.0.0.1',
+				11222,
+				1
+			),
+		);
+
+		$this->assertEquals( $expected, $cache->servers );
+	}
+
+	public function test_environment_variables_set_configuration_array_with_weight_if_array_is_empty() {
+		global $memcached_servers;
+		$memcached_servers = array();
+
+		putenv( 'MEMCACHED_SERVERS=127.0.0.1:11222:1' );
+		$cache = new WP_Object_Cache();
+
+		$expected = array(
+			array(
+				'127.0.0.1',
+				11222,
+				1
+			),
+		);
+
+		$this->assertEquals( $expected, $cache->servers );
+	}
+
+	public function test_environment_variables_set_configuration_array_with_weight_for_multiple_servers() {
+		unset( $GLOBALS['memcached_servers'] );
+		putenv( 'MEMCACHED_SERVERS=127.0.0.1:11222:1;127.0.0.2:11222:1' );
+		$cache = new WP_Object_Cache();
+
+		$expected = array(
+			array(
+				'127.0.0.1',
+				11222,
+				1
+			),
+			array(
+				'127.0.0.2',
+				11222,
+				1
+			),
+		);
+
+		$this->assertEquals( $expected, $cache->servers );
+	}
 }
