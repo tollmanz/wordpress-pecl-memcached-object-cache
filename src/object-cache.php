@@ -832,7 +832,7 @@ class WP_Object_Cache {
 
 			foreach ( $env_servers as $env_server ) {
 				if ( ! empty( $env_server ) ) {
-					$memcached_servers[] = explode( ':', $env_server, 2 );
+					$memcached_servers[] = explode( ':', $env_server, 3 );
 				}
 			}
 		}
