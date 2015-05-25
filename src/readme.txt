@@ -5,8 +5,7 @@ Tags: performance, object cache, drop-in
 Requires at least: 3.4
 Tested up to: 3.9.1
 Stable tag: 1.0.0
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License: MIT
 
 Object cache drop-in using the Memcached PECL extension to interface with Memcached.
 
