@@ -78,7 +78,7 @@ php -a
 	1. Type the following in the interactive shell:
 
 		```bash
-php > $m = new Memcached();
+php > $m = new Memcache();
 php > $m->addServer( '127.0.0.1', 11211 );
 php > $m->set( 'foo', 100 );
 php > echo $m->get( 'foo' ) . "\n";
