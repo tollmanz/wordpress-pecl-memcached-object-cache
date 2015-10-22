@@ -7,6 +7,10 @@ if ( ! class_exists( 'Memcached' ) ) {
 	return;
 }
 
+
+/// Travis test push
+
+
 /**
  * Adds a value to cache.
  *
