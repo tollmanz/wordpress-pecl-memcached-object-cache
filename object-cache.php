@@ -816,7 +816,7 @@ function wp_cache_init() {
 	 * Use persistent if provided:
 	 */
 	$persistent_id = null;
-	if ( defined( 'WP_CACHE_PERSISTENT_ID' ) && !empty(WP_CACHE_PERSISTENT_ID) ) {
+	if ( defined( 'WP_CACHE_PERSISTENT_ID' ) ) {
 		$persistent_id = WP_CACHE_PERSISTENT_ID;
 	}
 
