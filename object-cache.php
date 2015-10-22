@@ -1497,6 +1497,11 @@ class WP_Object_Cache {
 				$found = true;
 			} else {
 				$this->add_to_internal_cache( $derived_key, null );
+
+				// unset cas_token if key not found.
+				if ( func_num_args() > 6 ) {
+					$cas_token = null;
+				}
 			}
 		}
 

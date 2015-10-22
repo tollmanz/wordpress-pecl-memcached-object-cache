@@ -555,7 +555,6 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 
 	public function test_get_by_key_value_return_null_cas_token_with_not_found_key() {
 		$key = uniqid();
-
 		$server_key = uniqid();
 
 		// Return false with value not yet set
