@@ -811,7 +811,16 @@ function wp_cache_switch_to_blog( $blog_id ) {
  */
 function wp_cache_init() {
 	global $wp_object_cache;
-	$wp_object_cache = new WP_Object_Cache();
+
+	/**
+	 * Use persistent if provided:
+	 */
+	$persistent_id = null;
+	if ( defined( 'WP_CACHE_PERSISTENT_ID' ) && !empty(WP_CACHE_PERSISTENT_ID) ) {
+		$persistent_id = WP_CACHE_PERSISTENT_ID;
+	}
+
+	$wp_object_cache = new WP_Object_Cache( $persistent_id );
 }
 
 /**
@@ -1142,7 +1151,7 @@ class WP_Object_Cache {
 
 		// If group is a non-Memcached group, append to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			if ( ! isset( $this->cache[ $derived_key ] ) ) {
+			if ( ! array_key_exists( $derived_key, $this->cache ) ) {
 				return false;
 			}
 
@@ -1346,10 +1355,7 @@ class WP_Object_Cache {
 
 		// Remove from no_mc_groups array
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			if ( isset( $this->cache[ $derived_key ] ) ) {
-				unset( $this->cache[ $derived_key ] );
-			}
-
+			unset( $this->cache[ $derived_key ] );
 			return true;
 		}
 
@@ -1470,7 +1476,7 @@ class WP_Object_Cache {
 				$value = $this->m->get( $derived_key, $cache_cb, $cas_token );
 			}
 		} else {
-			if ( isset( $this->cache[ $derived_key ] ) ) {
+			if ( array_key_exists( $derived_key, $this->cache ) ) {
 				$found          = true;
 				$internal_cache = true;
 				$value          = $this->cache[ $derived_key ];
@@ -1492,7 +1498,7 @@ class WP_Object_Cache {
 				$this->add_to_internal_cache( $derived_key, $value );
 				$found = true;
 			} else {
-				$this->add_to_internal_cache( $derived_key, null );
+				unset ( $this->cache[ $derived_key ] );
 
 				// unset cas_token if key not found.
 				if ( func_num_args() > 6 ) {
