@@ -16,5 +16,5 @@ if ( ! $_core_dir ) {
 copy( dirname( __FILE__ ) . '/../object-cache.php', $_core_dir . '/wp-content/object-cache.php' );
 
 require $_tests_dir . '/includes/bootstrap.php';
-require $_tests_dir . '/tests/core.php';
+require $_tests_dir . '/tests/cache.php';
 require 'base.php';

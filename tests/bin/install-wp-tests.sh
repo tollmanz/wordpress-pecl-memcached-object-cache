@@ -44,19 +44,26 @@ install_test_suite() {
 	if [ ! -d $WP_TESTS_DIR ]; then
 		# set up testing suite
 		mkdir -p $WP_TESTS_DIR
-		svn co --quiet https://develop.svn.wordpress.org/${WP_TESTS_TAG}/tests/phpunit/includes/ $WP_TESTS_DIR/includes
+		cd $WP_TESTS_DIR
+		svn co --quiet http://develop.svn.wordpress.org/trunk/tests/phpunit/includes/
+	else
+		cd $WP_TESTS_DIR
 	fi
 
-	cd $WP_TESTS_DIR
+
 
 	if [ ! -f wp-tests-config.php ]; then
-		download https://develop.svn.wordpress.org/${WP_TESTS_TAG}/wp-tests-config-sample.php "$WP_TESTS_DIR"/wp-tests-config.php
+		wget -nv -O wp-tests-config.php http://develop.svn.wordpress.org/trunk/wp-tests-config-sample.php
 		sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR':" "$WP_TESTS_DIR"/wp-tests-config.php
 		sed $ioption "s/youremptytestdbnamehere/$DB_NAME/" "$WP_TESTS_DIR"/wp-tests-config.php
 		sed $ioption "s/yourusernamehere/$DB_USER/" "$WP_TESTS_DIR"/wp-tests-config.php
 		sed $ioption "s/yourpasswordhere/$DB_PASS/" "$WP_TESTS_DIR"/wp-tests-config.php
 		sed $ioption "s|localhost|${DB_HOST}|" "$WP_TESTS_DIR"/wp-tests-config.php
 	fi
+
+	# Grab the cache tests from core to test against them
+	mkdir -p $WP_TESTS_DIR/tests
+	wget -nv -O $WP_TESTS_DIR/tests/cache.php http://develop.svn.wordpress.org/trunk/tests/phpunit/tests/cache.php
 
 	# Setup memcached servers
 	echo 'global $memcached_servers;' >> wp-tests-config.php
