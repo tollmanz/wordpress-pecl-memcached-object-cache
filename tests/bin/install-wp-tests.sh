@@ -83,7 +83,7 @@ install_test_suite() {
 
 	# Grab the cache tests from core to test against them
 	mkdir -p $WP_TESTS_DIR/tests
-	download https://develop.svn.wordpress.org/${WP_TESTS_TAG}/trunk/tests/phpunit/tests/cache.php "$WP_TESTS_DIR"/tests/cache.php
+	download https://develop.svn.wordpress.org/${WP_TESTS_TAG}/tests/phpunit/tests/cache.php "$WP_TESTS_DIR"/tests/cache.php
 
 	# Setup memcached servers
 	echo 'global $memcached_servers;' >> wp-tests-config.php
