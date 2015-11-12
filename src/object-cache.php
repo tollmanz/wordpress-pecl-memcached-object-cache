@@ -839,7 +839,10 @@ class WP_Object_Cache {
 
 		$this->servers = empty( $memcached_servers ) ? array( array( '127.0.0.1', 11211 ) ) : $memcached_servers;
 
-		$this->addServers( $this->servers );
+		# If we are using persistent connection, we don't want to keep adding the same servers to the client
+		if (empty($this->m->getServerList())) {
+			$this->addServers( $this->servers );
+		}
 
 		/**
 		 * This approach is borrowed from Sivel and Boren. Use the salt for easy cache invalidation and for
