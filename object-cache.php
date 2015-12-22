@@ -847,6 +847,10 @@ if ( class_exists( 'Memcached', false ) ) {
 	}
 
 	class WP_Object_Cache {
+		/**
+		 * Quick use of a month in seconds
+		 */
+		const THIRTY_DAYS = 60 * 60 * 24 * 30;
 
 		/**
 		 * Holds the Memcached object.
@@ -948,7 +952,6 @@ if ( class_exists( 'Memcached', false ) ) {
 			}
 
 			// Setup cacheable values for handling expiration times
-			$this->thirty_days = 60 * 60 * 24 * 30;
 			$this->now         = time();
 		}
 
@@ -984,7 +987,7 @@ if ( class_exists( 'Memcached', false ) ) {
 			$expiration  = $this->sanitize_expiration( $expiration );
 
 			// If group is a non-Memcached group, save to runtime cache, not Memcached
-			if ( in_array( $group, $this->no_mc_groups ) ) {
+			if ( $this->group_in_no_mc( $group ) ) {
 
 				// Add does not set the value if the key exists; mimic that here
 				if ( array_key_exists( $derived_key, $this->cache ) ) {
@@ -1013,6 +1016,17 @@ if ( class_exists( 'Memcached', false ) ) {
 			return $result;
 		}
 
+		/**
+		 * Is the group in dont memcache groups
+		 * 
+		 * @param string $group
+		 *
+		 * @return bool
+		 */
+		private function group_in_no_mc( $group ) {
+			return in_array( $group, $this->no_mc_groups );
+		}
+		
 		/**
 		 * Adds a value to cache on a specific server.
 		 *
@@ -1082,7 +1096,7 @@ if ( class_exists( 'Memcached', false ) ) {
 				$add = $servers;
 			}
 
-			if ( $add ) {
+			if ( ! empty( $add ) ) {
 				return $this->m->addServers( $add );
 			}
 
@@ -1149,7 +1163,7 @@ if ( class_exists( 'Memcached', false ) ) {
 			$derived_key = $this->buildKey( $key, $group );
 
 			// If group is a non-Memcached group, append to runtime cache value, not Memcached
-			if ( in_array( $group, $this->no_mc_groups ) ) {
+			if ( $this->group_in_no_mc( $group ) ) {
 				if ( ! array_key_exists( $derived_key, $this->cache ) ) {
 					return false;
 				}
@@ -2226,7 +2240,7 @@ if ( class_exists( 'Memcached', false ) ) {
 		 * @return string|int                   The sanitized expiration time.
 		 */
 		public function sanitize_expiration( $expiration ) {
-			if ( $expiration > $this->thirty_days && $expiration <= $this->now ) {
+			if ( $expiration > self::THIRTY_DAYS && $expiration <= $this->now ) {
 				$expiration = $expiration + $this->now;
 			}
 
