@@ -911,6 +911,13 @@ if ( class_exists( 'Memcached', false ) ) {
 		public $blog_prefix = '';
 
 		/**
+		 * Current time holder
+		 *
+		 * @var int timestamp
+		 */
+		private $now;
+
+		/**
 		 * Instantiate the Memcached class.
 		 *
 		 * Instantiates the Memcached class and returns adds the servers specified
@@ -952,7 +959,7 @@ if ( class_exists( 'Memcached', false ) ) {
 			}
 
 			// Setup cacheable values for handling expiration times
-			$this->now         = time();
+			$this->now = time();
 		}
 
 		/**
@@ -1018,7 +1025,7 @@ if ( class_exists( 'Memcached', false ) ) {
 
 		/**
 		 * Is the group in dont memcache groups
-		 * 
+		 *
 		 * @param string $group
 		 *
 		 * @return bool
@@ -1026,7 +1033,7 @@ if ( class_exists( 'Memcached', false ) ) {
 		private function group_in_no_mc( $group ) {
 			return in_array( $group, $this->no_mc_groups );
 		}
-		
+
 		/**
 		 * Adds a value to cache on a specific server.
 		 *
@@ -1066,7 +1073,7 @@ if ( class_exists( 'Memcached', false ) ) {
 			$weight = is_numeric( $weight ) && $weight > 0 ? $weight : 1;
 
 			$servers = $this->getUnusedServers( array( array( $host, $port, $weight ) ) );
-			if ( $servers ) {
+			if ( ! empty( $servers ) ) {
 				return $this->m->addServer( $host, $port, $weight );
 			}
 
@@ -2206,18 +2213,21 @@ if ( class_exists( 'Memcached', false ) ) {
 				$keys = (array) $keys;
 			}
 
+			$count_groups = count( $groups );
+			$count_keys = count( $keys );
+
 			// If we have equal numbers of keys and groups, merge $keys[n] and $group[n]
-			if ( count( $keys ) == count( $groups ) ) {
-				for ( $i = 0; $i < count( $keys ); $i ++ ) {
+			if ( $count_keys == $count_groups ) {
+				for ( $i = 0; $i < $count_keys; $i ++ ) {
 					$derived_keys[] = $this->buildKey( $keys[ $i ], $groups[ $i ] );
 				}
 
 				// If more keys are received than groups, merge $keys[n] and $group[n] until no more group are left; remaining groups are 'default'
-			} elseif ( count( $keys ) > count( $groups ) ) {
-				for ( $i = 0; $i < count( $keys ); $i ++ ) {
+			} elseif ( $count_keys > $count_groups ) {
+				for ( $i = 0; $i < $count_keys; $i ++ ) {
 					if ( isset( $groups[ $i ] ) ) {
 						$derived_keys[] = $this->buildKey( $keys[ $i ], $groups[ $i ] );
-					} elseif ( count( $groups ) == 1 ) {
+					} elseif ( $count_groups == 1 ) {
 						$derived_keys[] = $this->buildKey( $keys[ $i ], $groups[0] );
 					} else {
 						$derived_keys[] = $this->buildKey( $keys[ $i ], 'default' );
