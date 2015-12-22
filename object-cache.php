@@ -850,7 +850,7 @@ if ( class_exists( 'Memcached', false ) ) {
 		/**
 		 * Quick use of a month in seconds
 		 */
-		const THIRTY_DAYS = 60 * 60 * 24 * 30;
+		const THIRTY_DAYS = 2592000; // 60x60x24x30
 
 		/**
 		 * Holds the Memcached object.
