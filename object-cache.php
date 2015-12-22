@@ -915,7 +915,7 @@ if ( class_exists( 'Memcached', false ) ) {
 		 *
 		 * @var int timestamp
 		 */
-		private $now;
+		public $now;
 
 		/**
 		 * Instantiate the Memcached class.
