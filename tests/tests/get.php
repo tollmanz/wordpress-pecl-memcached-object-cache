@@ -251,10 +251,13 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 		$key = uniqid();
 
 		// Return false with value not yet set
-		$this->assertFalse( $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token ) );
+		$value = $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token );
+		$this->assertFalse( $value );
 
 		// Verify that we have a CAS token
 		$this->assertTrue( is_null( $cas_token ) );
+		$this->assertEquals( null, $cas_token );
+		$this->assertEquals( false, $value );
 	}
 
 	public function test_get_value_with_cas_token_and_callback() {
