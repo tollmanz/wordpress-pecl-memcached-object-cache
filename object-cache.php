@@ -757,14 +757,6 @@ function wp_cache_add_non_persistent_groups( $groups ) {
 	$wp_object_cache->add_non_persistent_groups( $groups );
 }
 
-/**
- * Enable object cache for a single blog
- *
- * @param   int     $blog_id    Blog ID.
- *
- * @return  void
- */
-
 class WP_Object_Cache {
 
 	/**
