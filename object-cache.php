@@ -758,7 +758,7 @@ function wp_cache_add_non_persistent_groups( $groups ) {
 }
 
 /**
- * Enable object cache
+ * Enable object cache for a single blog
  *
  * @param   int     $blog_id    Blog ID.
  *
@@ -770,7 +770,7 @@ function wp_enable_object_cache($blog_id) {
 }
 
 /**
- * Disable object cache
+ * Disable object cache for a single blog
  *
  * @param   int     $blog_id    Blog ID.
  *
@@ -2135,7 +2135,7 @@ class WP_Object_Cache {
 	}
 
 	/**
-	 * Turn off Object Caching for some functions
+	 * Turn off Object Caching for a single blog
 	 *
 	 * @param   int     $blog_id    Blog ID.
 	 * @param   bool	$enabled
@@ -2153,7 +2153,7 @@ class WP_Object_Cache {
 	}
 
 	/**
-	 * Check if cache enabled
+	 * Check if cache enabled for a single blog
 	 *
 	 * @param   int     $blog_id    Blog ID.
 	 * @param   int     $blog_id
@@ -2169,7 +2169,7 @@ class WP_Object_Cache {
     }
 
 	/**
-	 * Reset generation prefix value
+	 * Reset generation prefix value for a single blog
 	 *
 	 * @param   int     $blog_id    Blog ID.
 	 *
@@ -2187,11 +2187,11 @@ class WP_Object_Cache {
 	}
 
 	/**
-	 * Get generation prefix key
+	 * Get generation prefix key for a single blog
 	 *
 	 * @param   int     $blog_id    Blog ID.
 	 *
-	 * @return  string
+	 * @return  string Generation key
 	 */
 	public function generation_key($blog_id) {
 		if (!defined('WP_OBJECT_CACHE_GENERATION_PREFIX')) {
@@ -2202,11 +2202,11 @@ class WP_Object_Cache {
 	}
 
 	/**
-	 * Get generation prefix
+	 * Get generation prefix for a single blog
 	 *
 	 * @param   int     $blog_id    Blog ID.
 	 *
-	 * @return  type
+	 * @return  string Generation prefix
 	 */
 	public function get_generation($blog_id) {
 		if (isset($this->generation[$blog_id]) && $this->generation[$blog_id]) {
