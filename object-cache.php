@@ -764,22 +764,6 @@ function wp_cache_add_non_persistent_groups( $groups ) {
  *
  * @return  void
  */
-function wp_enable_object_cache($blog_id) {
-	global $wp_object_cache;
-	$wp_object_cache->set_cache_enabled($blog_id, true);
-}
-
-/**
- * Disable object cache for a single blog
- *
- * @param   int     $blog_id    Blog ID.
- *
- * @return  void
- */
-function wpe_disable_object_cache($blog_id) {
-	global $wp_object_cache;
-	$wp_object_cache->set_cache_enabled($blog_id, false);
-}
 
 class WP_Object_Cache {
 
@@ -831,6 +815,13 @@ class WP_Object_Cache {
 	 * @var string
 	 */
 	public $blog_prefix = '';
+
+	/**
+	 * Generation prefix for each blog
+	 *
+	 * @var string
+	 */
+	public $generation = array();
 
 	/**
 	 * Instantiate the Memcached class.
@@ -2133,40 +2124,6 @@ class WP_Object_Cache {
 			$this->blog_prefix = $table_prefix.':';
 		}
 	}
-
-	/**
-	 * Turn off Object Caching for a single blog
-	 *
-	 * @param   int     $blog_id    Blog ID.
-	 * @param   bool	$enabled
-	 *
-	 * @return  void
-	 */
-	public function set_cache_enabled($blog_id, $enabled) {
-		$blog_id = (int) $blog_id;
-		$key = 'cache_disabled:'.$blog_id;
-		if($enabled){
-			$this->m->delete($key, 0);
-		} else {
-			$this->m->set($key, true, 0);
-		}
-	}
-
-	/**
-	 * Check if cache enabled for a single blog
-	 *
-	 * @param   int     $blog_id    Blog ID.
-	 * @param   int     $blog_id
-	 *
-	 * @return  bool
-	 */
-	public function check_cache_enabled($blog_id) {
-		$blog_id = (int) $blog_id;
-		$key = 'cache_disabled:'.$blog_id;
-		$this->cache_enabled = !$this->m->get($key);
-        return $this->cache_enabled;
-
-    }
 
 	/**
 	 * Reset generation prefix value for a single blog

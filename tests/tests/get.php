@@ -248,7 +248,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_return_null_cas_token_with_not_found_key() {
-		$key = microtime();
+		$key = microtime().rand(0, getrandmax());
 
 		// Return false with value not yet set
 		$this->assertFalse( $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token ) );
@@ -554,9 +554,9 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_return_null_cas_token_with_not_found_key() {
-		$key = microtime();
+		$key = microtime().rand(0, getrandmax());
 
-		$server_key = microtime();
+		$server_key = microtime().rand(0, getrandmax());
 
 		// Return false with value not yet set
 		$this->assertFalse( $this->object_cache->getByKey( $server_key, $key, 'default', false, $found, null, $cas_token ) );
