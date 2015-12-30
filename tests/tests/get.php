@@ -2,7 +2,7 @@
 
 class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	public function test_get_value() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
 		// Add string to memcached
@@ -13,7 +13,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_twice() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
 		// Add string to memcached
@@ -27,7 +27,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_group() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
 		$group = 'devils';
@@ -40,7 +40,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_no_mc_group() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
 		$group = 'comment';
@@ -53,7 +53,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_global_group() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
 		$group = 'usermeta';
@@ -66,7 +66,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_found_indicator() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'karlson';
 		$group = 'senators';
 		$found = false;
@@ -82,7 +82,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_found_indicator_when_value_is_not_found() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'neil';
 		$group = 'senators';
 		$found = false;
@@ -101,7 +101,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_found_indicator_when_retrieved_from_memcached() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'holtby';
 		$group = 'capitals';
 		$found = false;
@@ -121,7 +121,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_found_indicator_when_retrieved_from_memcached_and_value_is_not_found() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'backstrom';
 		$group = 'capitals';
 		$found = false;
@@ -144,7 +144,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_callback_with_true_response() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'nj-devils';
 
 		$value = 'brodeur';
@@ -157,7 +157,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_callback_with_false_response() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'nhl-nj-devils';
 
 		$value = 'brodeur';
@@ -170,7 +170,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_callback_with_true_response_and_using_class_method() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'nhl-nj-devils-team';
 
 		$value = 'brodeur';
@@ -188,7 +188,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_callback_with_false_response_and_using_class_method() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'nhl-nj-devils-team-runner-up';
 
 		// Verify that callback sets value correctly
@@ -204,7 +204,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_with_callback_ignores_callback_for_no_mc_group() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'comment';
 
 		$value = 'brodeur';
@@ -226,7 +226,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_and_return_cas_token() {
-		$key = microtime();
+		$key = uniqid();
 
 		$value = 'ovechkin';
 		$new_value = 'crosby';
@@ -248,20 +248,17 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_value_return_null_cas_token_with_not_found_key() {
-		$key = microtime().rand(0, getrandmax());
+		$key = uniqid();
 
 		// Return false with value not yet set
-		$value = $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token );
-		$this->assertFalse( $value );
+		$this->assertFalse( $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token ) );
 
 		// Verify that we have a CAS token
 		$this->assertTrue( is_null( $cas_token ) );
-		$this->assertEquals(null, $cas_token);
-		$this->assertEquals(false, $value);
 	}
 
 	public function test_get_value_with_cas_token_and_callback() {
-		$key = microtime();
+		$key = uniqid();
 
 		$value = 'brodeur';
 		$group = 'devils';
@@ -291,7 +288,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	 * @expectedException PHPUnit_Framework_Error
 	 */
 	public function test_get_expect_exception_when_cache_cb_is_not_callable() {
-		$key = microtime();
+		$key = uniqid();
 
 		$value = 'brodeur';
 		$group = 'devils';
@@ -302,10 +299,10 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Add string to memcached
 		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value ) );
@@ -315,10 +312,10 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_twice() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Add string to memcached
 		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value ) );
@@ -331,12 +328,12 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_group() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
 		$group = 'devils';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Add string to memcached
 		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value, $group ) );
@@ -346,12 +343,12 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_no_mc_group() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
 		$group = 'comment';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Add string to memcached
 		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value, $group ) );
@@ -361,12 +358,12 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_global_group() {
-		$key = microtime();
+		$key = uniqid();
 		$value = 'brodeur';
 
 		$group = 'usermeta';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Add string to memcached
 		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value, $group ) );
@@ -376,8 +373,8 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_found_indicator() {
-		$key = microtime();
-		$server_key = microtime();
+		$key = uniqid();
+		$server_key = uniqid();
 		$value = 'johansen';
 		$group = 'senators';
 		$found = false;
@@ -393,8 +390,8 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_found_indicator_when_value_is_not_found() {
-		$key = microtime();
-		$server_key = microtime();
+		$key = uniqid();
+		$server_key = uniqid();
 		$value = 'fisher';
 		$group = 'senators';
 		$found = false;
@@ -413,8 +410,8 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_found_indicator_when_retrieved_from_memcached() {
-		$key = microtime();
-		$server_key = microtime();
+		$key = uniqid();
+		$server_key = uniqid();
 		$value = 'ovechkin';
 		$group = 'capitals';
 		$found = false;
@@ -434,8 +431,8 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_found_indicator_when_retrieved_from_memcached_and_value_is_not_found() {
-		$key = microtime();
-		$server_key = microtime();
+		$key = uniqid();
+		$server_key = uniqid();
 		$value = 'simmonds';
 		$group = 'flyers';
 		$found = false;
@@ -458,12 +455,12 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_callback_with_true_response() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'nj-devils';
 
 		$value = 'brodeur';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Verify that callback sets value correctly
 		$this->assertSame( $value, $this->object_cache->getByKey( $server_key, $key, $group, false, $found, 'memcached_get_callback_true' ) );
@@ -473,10 +470,10 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_callback_with_false_response() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'nhl-nj-devils';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Verify that callback sets value correctly
 		$this->assertFalse( $this->object_cache->getByKey( $server_key, $key, $group, false, $found, 'memcached_get_callback_false' ) );
@@ -486,12 +483,12 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_callback_with_true_response_and_using_class_method() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'nhl-nj-devils-team';
 
 		$value = 'brodeur';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Verify that callback sets value correctly
 		$this->assertSame( $value, $this->object_cache->getByKey( $server_key, $key, $group, false, $found, array( &$this, 'memcached_get_callback_true_class_method' ) ) );
@@ -501,10 +498,10 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_callback_with_false_response_and_using_class_method() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'nhl-nj-devils-team-runner-up';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Verify that callback sets value correctly
 		$this->assertFalse( $this->object_cache->getByKey( $server_key, $key, $group, false, $found, array( &$this, 'memcached_get_callback_false_class_method' ) ) );
@@ -514,12 +511,12 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_with_callback_ignores_callback_for_no_mc_group() {
-		$key = microtime();
+		$key = uniqid();
 		$group = 'comment';
 
 		$value = 'brodeur';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Verify that if completely bypassed
 		$this->assertFalse( $this->object_cache->getByKey( $server_key, $key, $group, false, $found, array( &$this, 'memcached_get_callback_true_no_mc_group' ) ) );
@@ -533,12 +530,12 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_value_value_and_return_cas_token() {
-		$key = microtime();
+		$key = uniqid();
 
 		$value = 'ovechkin';
 		$new_value = 'crosby';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Add value
 		$this->assertTrue( $this->object_cache->addByKey( $server_key, $key, $value ) );
@@ -557,22 +554,19 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	}
 
 	public function test_get_by_key_value_return_null_cas_token_with_not_found_key() {
-		$key = microtime().rand(0, getrandmax());
+		$key = uniqid();
 
-		$server_key = microtime().rand(0, getrandmax());
+		$server_key = uniqid();
 
 		// Return false with value not yet set
-		$value = $this->object_cache->getByKey( $server_key, $key, 'default', false, $found, null, $cas_token );
-		$this->assertFalse( $value );
+		$this->assertFalse( $this->object_cache->getByKey( $server_key, $key, 'default', false, $found, null, $cas_token ) );
 
 		// Verify that we have a CAS token
 		$this->assertTrue( is_null( $cas_token ) );
-		$this->assertEquals(null, $cas_token);
-		$this->assertEquals(false, $value);
 	}
 
 	public function test_get_by_key_value_with_cas_token_and_callback() {
-		$key = microtime();
+		$key = uniqid();
 
 		$value = 'brodeur';
 		$group = 'wild';
@@ -600,12 +594,12 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 	 * @expectedException PHPUnit_Framework_Error
 	 */
 	public function test_get_by_key_expect_exception_when_cache_cb_is_not_callable() {
-		$key = microtime();
+		$key = uniqid();
 
 		$value = 'brodeur';
 		$group = 'devils';
 
-		$server_key = microtime();
+		$server_key = uniqid();
 
 		// Set value via the callback when key is not set
 		$this->assertSame( $value, $this->object_cache->getByKey( $server_key, $key, $group, false, $found, array( &$this, 'fake_function' ) ) );
