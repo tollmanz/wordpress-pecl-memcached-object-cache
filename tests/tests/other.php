@@ -129,7 +129,7 @@ class MemcachedUnitTestsAll extends MemcachedUnitTests {
 		} else {
 			// Multisite should have separate per-blog caches
 			$this->assertTrue( $this->object_cache->set( $key, $val ) );
-			$this->assertEquals( $val.'*5', $this->object_cache->get( $key ) );
+			$this->assertEquals( $val, $this->object_cache->get( $key ) );
 			$this->object_cache->switch_to_blog( 999 );
 			$this->assertFalse( $this->object_cache->get( $key ) );
 			$this->assertTrue( $this->object_cache->set( $key, $val2 ) );
@@ -145,7 +145,7 @@ class MemcachedUnitTestsAll extends MemcachedUnitTests {
 		// Global group
 		$this->object_cache->add_global_groups( 'global-cache-test' );
 		$this->assertTrue( $this->object_cache->set( $key, $val, 'global-cache-test' ) );
-		$this->assertEquals( $val.'*10', $this->object_cache->get( $key, 'global-cache-test' ) );
+		$this->assertEquals( $val, $this->object_cache->get( $key, 'global-cache-test' ) );
 		$this->object_cache->switch_to_blog( 999 );
 		$this->assertEquals( $val.'*11', $this->object_cache->get( $key, 'global-cache-test' ) );
 		$this->assertTrue( $this->object_cache->set( $key, $val2, 'global-cache-test' ) );
