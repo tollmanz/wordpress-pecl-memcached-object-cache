@@ -858,7 +858,7 @@ class WP_Object_Cache {
 		// Assign global and blog prefixes for use with keys
 		if ( function_exists( 'is_multisite' ) ) {
 			$this->global_prefix = ( is_multisite() || defined( 'CUSTOM_USER_TABLE' ) && defined( 'CUSTOM_USER_META_TABLE' ) ) ? '' : $table_prefix;
-			$this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
+			$this->switch_to_blog($blog_id);
 		}
 
 		// Setup cacheable values for handling expiration times
