@@ -130,12 +130,15 @@ class MemcachedUnitTestsAll extends MemcachedUnitTests {
 			// Multisite should have separate per-blog caches
 			$this->assertTrue( $this->object_cache->set( $key, $val ) );
 			$this->assertEquals( $val, $this->object_cache->get( $key ) );
+			$debug = ' Blog ID: '.get_current_blog_id().', Prefix: '.$this->object_cache->blog_prefix;
 			$this->object_cache->switch_to_blog( 999 );
+			$debug .= ' Blog ID: 999, Prefix: '.$this->object_cache->blog_prefix;
 			$this->assertFalse( $this->object_cache->get( $key ) );
 			$this->assertTrue( $this->object_cache->set( $key, $val2 ) );
 			$this->assertEquals( $val2, $this->object_cache->get( $key ) );
 			$this->object_cache->switch_to_blog( get_current_blog_id() );
-			$this->assertEquals('zzz', $this->object_cache->blog_prefix.'-'.get_current_blog_id());
+			$debug .= ' Blog ID: '.get_current_blog_id().', Prefix: '.$this->object_cache->blog_prefix;
+			$this->assertEquals('zzz', $debug);
 			$this->assertEquals( $val.'*7', $this->object_cache->get( $key ) );
 			$this->object_cache->switch_to_blog( 999 );
 			$this->assertEquals( $val2.'*8', $this->object_cache->get( $key ) );
@@ -152,7 +155,7 @@ class MemcachedUnitTestsAll extends MemcachedUnitTests {
 		$this->assertTrue( $this->object_cache->set( $key, $val2, 'global-cache-test' ) );
 		$this->assertEquals( $val2, $this->object_cache->get( $key, 'global-cache-test' ) );
 		$this->object_cache->switch_to_blog( get_current_blog_id() );
-		$this->assertEquals( $val2.'*13', $this->object_cache->get( $key, 'global-cache-test' ) );
+		$this->assertEquals( $val2, $this->object_cache->get( $key, 'global-cache-test' ) );
 	}
 
 	public function test_sanitize_expiration_leaves_value_untouched_if_less_than_thirty_days() {
