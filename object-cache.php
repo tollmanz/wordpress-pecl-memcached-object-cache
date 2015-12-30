@@ -757,6 +757,30 @@ function wp_cache_add_non_persistent_groups( $groups ) {
 	$wp_object_cache->add_non_persistent_groups( $groups );
 }
 
+/**
+ * Enable object cache
+ *
+ * @param   int     $blog_id    Blog ID.
+ *
+ * @return  void
+ */
+function wp_enable_object_cache($blog_id) {
+	global $wp_object_cache;
+	$wp_object_cache->set_cache_enabled($blog_id, true);
+}
+
+/**
+ * Disable object cache
+ *
+ * @param   int     $blog_id    Blog ID.
+ *
+ * @return  void
+ */
+function wpe_disable_object_cache($blog_id) {
+	global $wp_object_cache;
+	$wp_object_cache->set_cache_enabled($blog_id, false);
+}
+
 class WP_Object_Cache {
 
 	/**
@@ -2101,6 +2125,101 @@ class WP_Object_Cache {
 	public function switch_to_blog( $blog_id ) {
 		global $table_prefix;
 		$blog_id           = (int) $blog_id;
-		$this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
+
+		if(is_multisite()){
+			$generation = $this->get_generation($blog_id);
+			$this->blog_prefix = $blog_id.':'.$generation.':';
+		} else {
+			$this->blog_prefix = $table_prefix.':';
+		}
+	}
+
+	/**
+	 * Turn off Object Caching for some functions
+	 *
+	 * @param   int     $blog_id    Blog ID.
+	 * @param   bool	$enabled
+	 *
+	 * @return  void
+	 */
+	public function set_cache_enabled($blog_id, $enabled) {
+		$blog_id = (int) $blog_id;
+		$key = 'cache_disabled:'.$blog_id;
+		if($enabled){
+			$this->m->delete($key, 0);
+		} else {
+			$this->m->set($key, true, 0);
+		}
+	}
+
+	/**
+	 * Check if cache enabled
+	 *
+	 * @param   int     $blog_id    Blog ID.
+	 * @param   int     $blog_id
+	 *
+	 * @return  bool
+	 */
+	public function check_cache_enabled($blog_id) {
+		$blog_id = (int) $blog_id;
+		$key = 'cache_disabled:'.$blog_id;
+		$this->cache_enabled = !$this->m->get($key);
+        return $this->cache_enabled;
+
+    }
+
+	/**
+	 * Reset generation prefix value
+	 *
+	 * @param   int     $blog_id    Blog ID.
+	 *
+	 * @return  bool
+	 */
+	public function reset_generation($blog_id) {
+		$key = $this->generation_key($blog_id);
+
+		$this->m->delete($key, 0);
+		$this->generation[$blog_id] = microtime(true).rand(0, PHP_INT_MAX);
+
+		$result = $this->m->set($key, $this->generation[$blog_id], 0);
+
+		return $result;
+	}
+
+	/**
+	 * Get generation prefix key
+	 *
+	 * @param   int     $blog_id    Blog ID.
+	 *
+	 * @return  string
+	 */
+	public function generation_key($blog_id) {
+		if (!defined('WP_OBJECT_CACHE_GENERATION_PREFIX')) {
+			define('WP_OBJECT_CACHE_GENERATION_PREFIX', 'generation:');
+		}
+		$key = WP_OBJECT_CACHE_GENERATION_PREFIX.$blog_id;
+		return $key;
+	}
+
+	/**
+	 * Get generation prefix
+	 *
+	 * @param   int     $blog_id    Blog ID.
+	 *
+	 * @return  type
+	 */
+	public function get_generation($blog_id) {
+		if (isset($this->generation[$blog_id]) && $this->generation[$blog_id]) {
+			return $this->generation[$blog_id];
+		}
+
+		//Attempt to load the generation from memcache. If it's not present, then the entire
+		//cache for this blog has been invalidated, so reset to a new generation.
+		$key = $this->generation_key($blog_id);
+		$this->generation[$blog_id] = $this->m->get($key);
+		if ($this->generation[$blog_id] === false) {
+			$this->reset_generation($blog_id);
+		}
+		return $this->generation[$blog_id];
 	}
 }
