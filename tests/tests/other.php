@@ -133,7 +133,7 @@ class MemcachedUnitTestsAll extends MemcachedUnitTests {
 			$this->object_cache->switch_to_blog( 999 );
 			$this->assertFalse( $this->object_cache->get( $key ) );
 			$this->assertTrue( $this->object_cache->set( $key, $val2 ) );
-			$this->assertEquals( $val2.'*6', $this->object_cache->get( $key ) );
+			$this->assertEquals( $val2, $this->object_cache->get( $key ) );
 			$this->object_cache->switch_to_blog( get_current_blog_id() );
 			$this->assertEquals( $val.'*7', $this->object_cache->get( $key ) );
 			$this->object_cache->switch_to_blog( 999 );
@@ -147,7 +147,7 @@ class MemcachedUnitTestsAll extends MemcachedUnitTests {
 		$this->assertTrue( $this->object_cache->set( $key, $val, 'global-cache-test' ) );
 		$this->assertEquals( $val, $this->object_cache->get( $key, 'global-cache-test' ) );
 		$this->object_cache->switch_to_blog( 999 );
-		$this->assertEquals( $val.'*11', $this->object_cache->get( $key, 'global-cache-test' ) );
+		$this->assertEquals( $val, $this->object_cache->get( $key, 'global-cache-test' ) );
 		$this->assertTrue( $this->object_cache->set( $key, $val2, 'global-cache-test' ) );
 		$this->assertEquals( $val2.'*12', $this->object_cache->get( $key, 'global-cache-test' ) );
 		$this->object_cache->switch_to_blog( get_current_blog_id() );

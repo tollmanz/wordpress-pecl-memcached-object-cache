@@ -257,6 +257,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 		// Verify that we have a CAS token
 		$this->assertEquals( false, $value );
 		$this->assertEquals( null, $cas_token );
+		$this->assertEquals( 'xxx', $cas_token );
 		$this->assertTrue( is_null( $cas_token ) );
 
 
