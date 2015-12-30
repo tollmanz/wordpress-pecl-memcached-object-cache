@@ -119,13 +119,13 @@ class MemcachedUnitTestsAll extends MemcachedUnitTests {
 		if ( ! is_multisite() ) {
 			// Single site ingnores switch_to_blog().
 			$this->assertTrue( $this->object_cache->set( $key, $val ) );
-			$this->assertEquals( $val.'*1', $this->object_cache->get( $key ) );
+			$this->assertEquals( $val, $this->object_cache->get( $key ) );
 			$this->object_cache->switch_to_blog( 999 );
-			$this->assertEquals( $val.'*2', $this->object_cache->get( $key ) );
+			$this->assertEquals( $val, $this->object_cache->get( $key ) );
 			$this->assertTrue( $this->object_cache->set( $key, $val2 ) );
-			$this->assertEquals( $val2.'*3', $this->object_cache->get( $key ) );
+			$this->assertEquals( $val2, $this->object_cache->get( $key ) );
 			$this->object_cache->switch_to_blog( get_current_blog_id() );
-			$this->assertEquals( $val2.'*4', $this->object_cache->get( $key ) );
+			$this->assertEquals( $val2, $this->object_cache->get( $key ) );
 		} else {
 			// Multisite should have separate per-blog caches
 			$this->assertTrue( $this->object_cache->set( $key, $val ) );
