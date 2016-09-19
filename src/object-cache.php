@@ -1403,10 +1403,21 @@ class WP_Object_Cache {
 	 * wrap calls to Memcached::getMultiByKey() because of signature differences
 	 */
 	protected function _getMultiByKey( $server_key, $derived_keys, &$cas_tokens, $flags ) {
-		if ($this->getmulti_has_cas)
+		if ($this->getmulti_has_cas) {
 			$values = $this->m->getMultiByKey( $server_key, $derived_keys, $cas_tokens, $flags );
-		else
-			$values = $this->m->getMultiByKey( $server_key, $derived_keys, $flags );
+		}
+		else {
+			// need to get extended result from Memcached to get the CAS tokens
+			$result = $this->m->getMultiByKey( $server_key, $derived_keys, $flags | Memcached::GET_EXTENDED );
+
+			$cas_tokens = array();
+			$values     = array();
+
+			foreach ( $result as $key => $extended ) {
+				$values[$key]     = $extended['value'];
+				$cas_tokens[$key] = $extended['cas'];
+			}
+		}
 
 		return $values;
 	}
@@ -1415,10 +1426,21 @@ class WP_Object_Cache {
 	 * wrap calls to Memcached::getMulti() because of signature differences
 	 */
 	protected function _getMulti( $derived_keys, &$cas_tokens, $flags ) {
-		if ($this->getmulti_has_cas)
+		if ($this->getmulti_has_cas) {
 			$values = $this->m->getMulti( $derived_keys, $cas_tokens, $flags );
-		else
-			$values = $this->m->getMulti( $derived_keys, $flags );
+		}
+		else {
+			// need to get extended result from Memcached to get the CAS tokens
+			$result = $this->m->getMulti( $derived_keys, $flags | Memcached::GET_EXTENDED );
+
+			$cas_tokens = array();
+			$values     = array();
+
+			foreach ( $result as $key => $extended ) {
+				$values[$key]     = $extended['value'];
+				$cas_tokens[$key] = $extended['cas'];
+			}
+		}
 
 		return $values;
 	}
