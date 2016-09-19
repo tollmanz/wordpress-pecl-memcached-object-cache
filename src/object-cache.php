@@ -809,6 +809,13 @@ class WP_Object_Cache {
 	public $blog_prefix = '';
 
 	/**
+	 * whether Memcached::getMulti() has $cas_tokens parameter
+	 *
+	 * @var bool
+	 */
+	protected $getmulti_has_cas = false;
+
+	/**
 	 * Instantiate the Memcached class.
 	 *
 	 * Instantiates the Memcached class and returns adds the servers specified
@@ -857,6 +864,15 @@ class WP_Object_Cache {
 		// Setup cacheable values for handling expiration times
 		$this->thirty_days = 60 * 60 * 24 * 30;
 		$this->now         = time();
+
+		// Detect method signature for getMulti() which has changed since PHP 7.0
+		$refMethod = new ReflectionMethod( 'Memcached', 'getMulti' );
+		foreach ( $refMethod->getParameters() as $param ) {
+			if ( $param->name === 'cas_tokens' ) {
+				$this->getmulti_has_cas = true;
+				break;
+			}
+		}
 	}
 
 	/**
@@ -1384,6 +1400,52 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * wrap calls to Memcached::getMultiByKey() because of signature differences
+	 */
+	protected function _getMultiByKey( $server_key, $derived_keys, &$cas_tokens, $flags ) {
+		if ($this->getmulti_has_cas) {
+			$values = $this->m->getMultiByKey( $server_key, $derived_keys, $cas_tokens, $flags );
+		}
+		else {
+			// need to get extended result from Memcached to get the CAS tokens
+			$result = $this->m->getMultiByKey( $server_key, $derived_keys, $flags | Memcached::GET_EXTENDED );
+
+			$cas_tokens = array();
+			$values     = array();
+
+			foreach ( $result as $key => $extended ) {
+				$values[$key]     = $extended['value'];
+				$cas_tokens[$key] = $extended['cas'];
+			}
+		}
+
+		return $values;
+	}
+
+	/**
+	 * wrap calls to Memcached::getMulti() because of signature differences
+	 */
+	protected function _getMulti( $derived_keys, &$cas_tokens, $flags ) {
+		if ($this->getmulti_has_cas) {
+			$values = $this->m->getMulti( $derived_keys, $cas_tokens, $flags );
+		}
+		else {
+			// need to get extended result from Memcached to get the CAS tokens
+			$result = $this->m->getMulti( $derived_keys, $flags | Memcached::GET_EXTENDED );
+
+			$cas_tokens = array();
+			$values     = array();
+
+			foreach ( $result as $key => $extended ) {
+				$values[$key]     = $extended['value'];
+				$cas_tokens[$key] = $extended['cas'];
+			}
+		}
+
+		return $values;
+	}
+
+	/**
 	 * Gets multiple values from memcached in one request.
 	 *
 	 * See the buildKeys method definition to understand the $keys/$groups parameters.
@@ -1407,9 +1469,9 @@ class WP_Object_Cache {
 		 */
 		if ( func_num_args() > 3 && ! $this->contains_no_mc_group( $groups ) ) {
 			if ( ! empty( $server_key ) )
-				$values = $this->m->getMultiByKey( $server_key, $derived_keys, $cas_tokens, $flags );
+				$values = $this->_getMultiByKey( $server_key, $derived_keys, $cas_tokens, $flags );
 			else
-				$values = $this->m->getMulti( $derived_keys, $cas_tokens, $flags );
+				$values = $this->_getMulti( $derived_keys, $cas_tokens, $flags );
 		} else {
 			$values = array();
 			$need_to_get = array();
@@ -1425,9 +1487,9 @@ class WP_Object_Cache {
 			// Get those keys not found in the runtime cache
 			if ( ! empty( $need_to_get ) ) {
 				if ( ! empty( $server_key ) )
-					$result = $this->m->getMultiByKey( $server_key, array_keys( $need_to_get ) );
+					$result = $this->_getMultiByKey( $server_key, array_keys( $need_to_get ) );
 				else
-					$result = $this->m->getMulti( array_keys( $need_to_get ) );
+					$result = $this->_getMulti( array_keys( $need_to_get ) );
 			}
 
 			// Merge with values found in runtime cache
