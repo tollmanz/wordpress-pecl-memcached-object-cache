@@ -878,6 +878,10 @@ class WP_Object_Cache {
 			return false;
 		}
 
+		if ( $key === 'alloptions' && $group === 'options' ) {
+			return $this->setAllOptions( $value );
+		}
+
 		$derived_key = $this->buildKey( $key, $group );
 		$expiration  = $this->sanitize_expiration( $expiration );
 
@@ -1185,6 +1189,10 @@ class WP_Object_Cache {
 			return true;
 		}
 
+		if ( $key === 'alloptions' && $group === 'options' ) {
+			return $this->deleteAllOptions();
+		}
+
 		if ( $byKey )
 			$result = $this->m->deleteByKey( $server_key, $derived_key, $time );
 		else
@@ -1286,6 +1294,9 @@ class WP_Object_Cache {
 		// Assume object is not found
 		$found = false;
 
+		if ( $key === 'alloptions' && $group === 'options' ) {
+			return $this->getAllOptions();
+		}
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
 		if ( func_num_args() > 6 && ! in_array( $group, $this->no_mc_groups ) ) {
 			if ( $byKey )
@@ -1475,6 +1486,105 @@ class WP_Object_Cache {
 			return $this->getMulti( $keys, $groups, $server_key, $cas_tokens, $flags );
 		else
 			return $this->getMulti( $keys, $groups, $server_key );
+	}
+
+	/**
+	 * Get the "alloptions" special value.
+	 *
+	 * WordPress stores all options under a single memcached key, which can lead to
+	 * race conditions with other updates in other threads. Therefore, we override
+	 * WordPress behaviour and store each option it it's own memcached object, and use
+	 * a secondary object "alloptionskeys" to store all the different keys, this allows
+	 * us to fetch all of the options keys at once using getMulti().
+	 *
+	 * @return array
+	 */
+	public function getAllOptions() {
+		// Check our internal cache, to avoid the more expensive get-multi
+		$key = $this->buildKey( 'alloptions', 'options' );
+		if ( isset( $this->cache[ $key ] ) ) {
+			return $this->cache[ $key ];
+		}
+
+		$keys = $this->get( 'alloptionskeys', 'options' );
+		if ( empty( $keys ) ) {
+			return array();
+		}
+
+		$data = $this->getMulti( array_keys( $keys ), 'options' );
+
+		if ( empty( $data ) ) {
+			return array();
+		}
+
+		$this->cache[ $key ] = $data;
+		return $data;
+	}
+
+	/**
+	 * Update the "alloptions" special key.
+	 *
+	 * This will cause a set on each option value as each option gets it's own
+	 * memcached object, these are then all tied together in the "alloptionskeys"
+	 * object.
+	 *
+	 * @param bool
+	 */
+	public function setAllOptions( $data ) {
+		$internal_cache_key = $this->buildKey( 'alloptions', 'options' );
+		$existing = $internal_cache = $this->getAllOptions();
+
+		$keys = $this->get( 'alloptionskeys', 'options' );
+		if ( empty( $keys ) ) {
+			$keys = array();
+		}
+		// While you could use array_diff here, it ends up being a bit more
+		// complicated than just checking
+		foreach ( $data as $key => $value ) {
+			if ( isset( $existing[ $key ] ) && $existing[ $key ] === $value ) {
+				continue;
+			}
+			if ( ! isset( $keys[ $key ] ) ) {
+				$keys[ $key ] = true;
+			}
+			if ( ! $this->set( $key, $value, 'options' ) ) {
+				return false;
+			}
+
+			$internal_cache[ $key ] = $value;
+		}
+		// Remove deleted elements
+		foreach ( $existing as $key => $value ) {
+			if ( isset( $data[ $key ] ) ) {
+				continue;
+			}
+			if ( isset( $keys[ $key ] ) ) {
+				unset( $keys[ $key ] );
+			}
+			if ( ! $this->delete( $key, 'options' ) ) {
+				return false;
+			}
+
+			unset( $internal_cache[ $key ] );
+		}
+		if ( ! $this->set( 'alloptionskeys', $keys, 'options' ) ) {
+			return false;
+		}
+
+		$this->cache[ $internal_cache_key ] = $internal_cache;
+
+		return true;
+	}
+
+	/**
+	 * Delete the "alloptions" special key.
+	 *
+	 * @return bool
+	 */
+	public function deleteAllOptions() {
+		$key = $this->buildKey( 'alloptions', 'options' );
+		$this->cache[ $key ] = array();
+		return $this->delete( 'alloptionskeys', 'options' );
 	}
 
 	/**
@@ -1775,6 +1885,10 @@ class WP_Object_Cache {
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 			$this->add_to_internal_cache( $derived_key, $value );
 			return true;
+		}
+
+		if ( $key === 'alloptions' && $group === 'options' ) {
+			return $this->setAllOptions( $value );
 		}
 
 		// Save to Memcached
