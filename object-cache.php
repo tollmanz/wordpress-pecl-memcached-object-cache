@@ -1179,6 +1179,10 @@ class WP_Object_Cache {
 	 * @return  bool                    Returns TRUE on success or FALSE on failure.
 	 */
 	public function delete( $key, $group = 'default', $time = 0, $server_key = '', $byKey = false ) {
+		if ( $key === 'alloptions' && $group === 'options' ) {
+			return $this->deleteAllOptions();
+		}
+
 		$derived_key = $this->buildKey( $key, $group );
 
 		// Remove from no_mc_groups array
@@ -1187,10 +1191,6 @@ class WP_Object_Cache {
 				unset( $this->cache[$derived_key] );
 
 			return true;
-		}
-
-		if ( $key === 'alloptions' && $group === 'options' ) {
-			return $this->deleteAllOptions();
 		}
 
 		if ( $byKey )
@@ -1289,14 +1289,15 @@ class WP_Object_Cache {
 	 * @return  bool|mixed                  Cached object value.
 	 */
 	public function get( $key, $group = 'default', $force = false, &$found = null, $server_key = '', $byKey = false, $cache_cb = NULL, &$cas_token = NULL ) {
+		if ( $key === 'alloptions' && $group === 'options' ) {
+			return $this->getAllOptions();
+		}
+
 		$derived_key = $this->buildKey( $key, $group );
 
 		// Assume object is not found
 		$found = false;
 
-		if ( $key === 'alloptions' && $group === 'options' ) {
-			return $this->getAllOptions();
-		}
 		// If either $cache_db, or $cas_token is set, must hit Memcached and bypass runtime cache
 		if ( func_num_args() > 6 && ! in_array( $group, $this->no_mc_groups ) ) {
 			if ( $byKey )
