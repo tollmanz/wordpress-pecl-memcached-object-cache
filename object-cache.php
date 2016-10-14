@@ -284,6 +284,7 @@ function wp_cache_flush( $delay = 0 ) {
 		trigger_error( sprintf( 'wp_cache_flush() is only allowed via WP CLI. Called in %s line %d', $caller['file'], $caller['line'] ), E_USER_WARNING );
 		return false;
 	}
+	trigger_error( sprintf( 'wp_cache_flush() used, this is broadly not recommended. Called in %s line %d', $caller['file'], $caller['line'] ), E_USER_WARNING );
 	global $wp_object_cache;
 	return $wp_object_cache->flush( $delay );
 }
