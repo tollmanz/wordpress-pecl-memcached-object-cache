@@ -1524,6 +1524,10 @@ class WP_Object_Cache {
 			return array();
 		}
 
+		// getMulti returns a map of `[ cache_key => value ]` but we need to
+		// return a map of `[ option_name => value ]`
+		$data = array_combine( array_keys( $keys ), array_values( $data ) );
+
 		$this->cache[ $key ] = $data;
 		return $data;
 	}
