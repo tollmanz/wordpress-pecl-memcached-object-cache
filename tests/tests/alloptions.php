@@ -8,11 +8,6 @@ class MemcachedUnitTestsAllOptions extends MemcachedUnitTests {
 		$this->assertEquals( array( 'siteurl' => true ), $keys );
 	}
 
-	public function test_wp_load_alloptions_keys() {
-		$options = wp_load_alloptions();
-		$this->assertTrue( isset( $options['siteurl'] ) );
-	}
-
 	public function test_getting_all_options() {
 		$this->object_cache->set( 'alloptions', array( 'siteurl' => 'http://examples.com/' ), 'options' );
 
@@ -22,7 +17,9 @@ class MemcachedUnitTestsAllOptions extends MemcachedUnitTests {
 
 	public function test_add_option_updates_alloptions_keys() {
 		add_option( 'jordan', 'parise' );
+		$this->object_cache->set( 'alloptions', array( 'siteurl' => 'http://examples.com/' ), 'options' );
 		$keys = $this->object_cache->get( 'alloptionskeys', 'options' );
+
 		$this->assertTrue( array_key_exists( 'jordan', $keys ) );
 	}
 }
