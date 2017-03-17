@@ -280,7 +280,8 @@ function wp_cache_fetch_all() {
  */
 function wp_cache_flush( $delay = 0 ) {
 	if ( version_compare( PHP_VERSION, '5.4.0', '>=' ) ) {
-		$caller = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 )[0];
+		$caller = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 );
+		$caller = $caller[0];
 	} else {
 		$caller = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
 		$caller = $caller[0];
