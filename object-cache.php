@@ -1514,12 +1514,12 @@ class WP_Object_Cache {
 			return $this->cache[ $key ];
 		}
 
-		$keys = $this->get( 'alloptionskeys', 'options' );
+		$keys = array_keys( $this->get( 'alloptionskeys', 'options' ) );
 		if ( empty( $keys ) ) {
 			return array();
 		}
 
-		$data = $this->getMulti( array_keys( $keys ), 'options' );
+		$data = $this->getMulti( $keys, 'options' );
 
 		if ( empty( $data ) ) {
 			return array();
@@ -1527,7 +1527,7 @@ class WP_Object_Cache {
 
 		// getMulti returns a map of `[ cache_key => value ]` but we need to
 		// return a map of `[ option_name => value ]`
-		$data = array_combine( array_keys( $keys ), array_values( $data ) );
+		$data = array_combine( $keys, $data );
 
 		$this->cache[ $key ] = $data;
 		return $data;
