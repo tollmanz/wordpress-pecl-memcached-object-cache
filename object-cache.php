@@ -279,13 +279,8 @@ function wp_cache_fetch_all() {
  * @return bool             Returns TRUE on success or FALSE on failure.
  */
 function wp_cache_flush( $delay = 0 ) {
-	if ( version_compare( PHP_VERSION, '5.4.0', '>=' ) ) {
-		$caller = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 );
-		$caller = $caller[0];
-	} else {
-		$caller = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
-		$caller = $caller[0];
-	}
+	$caller = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 );
+	$caller = $caller[0];
 	if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 		trigger_error( sprintf( 'wp_cache_flush() is only allowed via WP CLI. Called in %s line %d', $caller['file'], $caller['line'] ), E_USER_WARNING );
 		return false;
