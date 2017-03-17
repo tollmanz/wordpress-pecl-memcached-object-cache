@@ -278,7 +278,7 @@ function wp_cache_fetch_all() {
  * @param int       $delay  Number of seconds to wait before invalidating the items.
  * @return bool             Returns TRUE on success or FALSE on failure.
  */
-function wp_cache_flush( $delay = 0 ) {	
+function wp_cache_flush( $delay = 0 ) {
 	$caller = array_shift( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 ) );
 	if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 		trigger_error( sprintf( 'wp_cache_flush() is only allowed via WP CLI. Called in %s line %d', $caller['file'], $caller['line'] ), E_USER_WARNING );
@@ -1513,16 +1513,20 @@ class WP_Object_Cache {
 			return $this->cache[ $key ];
 		}
 
-		$keys = $this->get( 'alloptionskeys', 'options' );
+		$keys = array_keys( $this->get( 'alloptionskeys', 'options' ) );
 		if ( empty( $keys ) ) {
 			return array();
 		}
 
-		$data = $this->getMulti( array_keys( $keys ), 'options' );
+		$data = $this->getMulti( $keys, 'options' );
 
 		if ( empty( $data ) ) {
 			return array();
 		}
+
+		// getMulti returns a map of `[ cache_key => value ]` but we need to
+		// return a map of `[ option_name => value ]`
+		$data = array_combine( $keys, $data );
 
 		$this->cache[ $key ] = $data;
 		return $data;
