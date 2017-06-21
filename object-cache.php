@@ -1513,7 +1513,11 @@ class WP_Object_Cache {
 			return $this->cache[ $key ];
 		}
 
-		$keys = array_keys( $this->get( 'alloptionskeys', 'options' ) );
+		$alloptionkeys = $this->get( 'alloptionskeys', 'options' );
+		if ( ! is_array( $alloptionkeys ) ) {
+			$alloptionkeys = array();
+		}
+		$keys = array_keys( $alloptionkeys );
 		if ( empty( $keys ) ) {
 			return array();
 		}
