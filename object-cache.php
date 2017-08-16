@@ -885,7 +885,7 @@ class WP_Object_Cache {
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Add does not set the value if the key exists; mimic that here
-			if ( isset( $this->cache[$derived_key] ) )
+			if ( array_key_exists( $derived_key, $this->cache ) )
 				return false;
 
 			$this->add_to_internal_cache( $derived_key, $value );
@@ -990,7 +990,7 @@ class WP_Object_Cache {
 
 		// If group is a non-Memcached group, append to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			if ( ! isset( $this->cache[$derived_key] ) )
+			if ( ! array_key_exists( $derived_key, $this->cache ) )
 				return false;
 
 			$combined = $this->combine_values( $this->cache[$derived_key], $value, 'app' );
@@ -1179,7 +1179,7 @@ class WP_Object_Cache {
 
 		// Remove from no_mc_groups array
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			if ( isset( $this->cache[$derived_key] ) )
+			if ( array_key_exists( $derived_key, $this->cache ) )
 				unset( $this->cache[$derived_key] );
 
 			return true;
@@ -1573,7 +1573,7 @@ class WP_Object_Cache {
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Only increment if the key already exists and the number is currently 0 or greater (mimics memcached behavior)
-			if ( isset( $this->cache[$derived_key] ) &&  $this->cache[$derived_key] >= 0 ) {
+			if ( array_key_exists( $derived_key, $this->cache ) &&  $this->cache[$derived_key] >= 0 ) {
 
 				// If numeric, add; otherwise, consider it 0 and do nothing
 				if ( is_numeric( $this->cache[$derived_key] ) )
@@ -1643,7 +1643,7 @@ class WP_Object_Cache {
 
 		// If group is a non-Memcached group, prepend to runtime cache value, not Memcached
 		if ( in_array( $group, $this->no_mc_groups ) ) {
-			if ( ! isset( $this->cache[$derived_key] ) )
+			if ( ! array_key_exists( $derived_key, $this->cache ) )
 				return false;
 
 			$combined = $this->combine_values( $this->cache[$derived_key], $value, 'pre' );
@@ -1713,7 +1713,7 @@ class WP_Object_Cache {
 		if ( in_array( $group, $this->no_mc_groups ) ) {
 
 			// Replace won't save unless the key already exists; mimic this behavior here
-			if ( ! isset( $this->cache[$derived_key] ) )
+			if ( ! array_key_exists( $derived_key, $this->cache ) )
 				return false;
 
 			$this->cache[$derived_key] = $value;
@@ -2086,7 +2086,7 @@ class WP_Object_Cache {
 	public function get_from_runtime_cache( $key, $group ) {
 		$derived_key = $this->buildKey( $key, $group );
 
-		if ( isset( $this->cache[$derived_key] ) )
+		if ( array_key_exists( $derived_key, $this->cache ) )
 			return $this->cache[$derived_key];
 
 		return false;
