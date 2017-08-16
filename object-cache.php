@@ -1990,7 +1990,7 @@ class WP_Object_Cache {
 	 */
 	public function sanitize_expiration( $expiration ) {
 		if ( $expiration > $this->thirty_days && $expiration <= $this->now ) {
-			$expiration = $expiration + $this->now;
+			$expiration += $this->now;
 		}
 
 		return $expiration;
