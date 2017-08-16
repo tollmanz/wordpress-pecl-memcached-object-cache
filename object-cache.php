@@ -1941,18 +1941,21 @@ class WP_Object_Cache {
 		if ( ! is_array( $keys ) )
 			$keys = (array) $keys;
 
+		$groups_count = count( $groups );
+		$keys_count = count( $keys );
+
 		// If we have equal numbers of keys and groups, merge $keys[n] and $group[n]
-		if ( count( $keys ) == count( $groups ) ) {
-			for ( $i = 0; $i < count( $keys ); $i++ ) {
+		if ( $keys_count === $groups_count ) {
+			for ( $i = 0; $i < $keys_count; $i++ ) {
 				$derived_keys[] = $this->buildKey( $keys[$i], $groups[$i] );
 			}
 
 		// If more keys are received than groups, merge $keys[n] and $group[n] until no more group are left; remaining groups are 'default'
-		} elseif ( count( $keys ) > count( $groups ) ) {
-			for ( $i = 0; $i < count( $keys ); $i++ ) {
+		} elseif ( $keys_count > $groups_count ) {
+			for ( $i = 0; $i < $keys_count; $i++ ) {
 				if ( isset( $groups[$i] ) )
 					$derived_keys[] = $this->buildKey( $keys[$i], $groups[$i] );
-				elseif ( count( $groups ) == 1 )
+				elseif ( $groups_count === 1 )
 					$derived_keys[] = $this->buildKey( $keys[$i], $groups[0] );
 				else
 					$derived_keys[] = $this->buildKey( $keys[$i], 'default' );
