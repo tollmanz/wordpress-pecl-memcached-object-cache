@@ -835,7 +835,7 @@ class WP_Object_Cache {
 	public function __construct( $persistent_id = NULL ) {
 		global $memcached_servers, $blog_id, $table_prefix;
 
-		if ( is_null( $persistent_id ) || ! is_string( $persistent_id ) )
+		if ( null === $persistent_id || ! is_string( $persistent_id ) )
 			$this->m = new Memcached();
 		else
 			$this->m = new Memcached( $persistent_id );
