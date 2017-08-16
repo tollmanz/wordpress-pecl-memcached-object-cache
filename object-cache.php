@@ -809,6 +809,20 @@ class WP_Object_Cache {
 	public $blog_prefix = '';
 
 	/**
+	 * Thirty days in seconds
+	 *
+	 * @var int
+	 */
+	private $thirty_days = 2592000;
+
+	/**
+	 * Current timestamp holder.
+	 *
+	 * @var int timestamp
+	 */
+	private $now;
+
+	/**
 	 * Instantiate the Memcached class.
 	 *
 	 * Instantiates the Memcached class and returns adds the servers specified
@@ -847,7 +861,6 @@ class WP_Object_Cache {
 		}
 
 		// Setup cacheable values for handling expiration times
-		$this->thirty_days = 60 * 60 * 24 * 30;
 		$this->now         = time();
 	}
 
