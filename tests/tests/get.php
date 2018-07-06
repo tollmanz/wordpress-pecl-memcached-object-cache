@@ -254,7 +254,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 		$this->assertFalse( $this->object_cache->get( $key, 'default', false, $found, '', false, null, $cas_token ) );
 
 		// Verify that we have a CAS token
-		$this->assertTrue( is_null( $cas_token ) );
+		$this->assertTrue( is_null( $cas_token ) || (float) 0 === $cas_token );
 	}
 
 	public function test_get_value_with_cas_token_and_callback() {
@@ -562,7 +562,7 @@ class MemcachedUnitTestsGet extends MemcachedUnitTests {
 		$this->assertFalse( $this->object_cache->getByKey( $server_key, $key, 'default', false, $found, null, $cas_token ) );
 
 		// Verify that we have a CAS token
-		$this->assertTrue( is_null( $cas_token ) );
+		$this->assertTrue( is_null( $cas_token ) || (float) 0 === $cas_token );
 	}
 
 	public function test_get_by_key_value_with_cas_token_and_callback() {

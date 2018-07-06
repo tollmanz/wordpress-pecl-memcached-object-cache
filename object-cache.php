@@ -809,6 +809,13 @@ class WP_Object_Cache {
 	public $blog_prefix = '';
 
 	/**
+	 * Generation prefix for each blog
+	 *
+	 * @var string
+	 */
+	public $generation = array();
+
+	/**
 	 * Instantiate the Memcached class.
 	 *
 	 * Instantiates the Memcached class and returns adds the servers specified
@@ -843,7 +850,7 @@ class WP_Object_Cache {
 		// Assign global and blog prefixes for use with keys
 		if ( function_exists( 'is_multisite' ) ) {
 			$this->global_prefix = ( is_multisite() || defined( 'CUSTOM_USER_TABLE' ) && defined( 'CUSTOM_USER_META_TABLE' ) ) ? '' : $table_prefix;
-			$this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
+			$this->switch_to_blog($blog_id);
 		}
 
 		// Setup cacheable values for handling expiration times
@@ -2101,6 +2108,67 @@ class WP_Object_Cache {
 	public function switch_to_blog( $blog_id ) {
 		global $table_prefix;
 		$blog_id           = (int) $blog_id;
-		$this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
+
+		if(is_multisite()){
+			$generation = $this->get_generation($blog_id);
+			$this->blog_prefix = $blog_id.':'.$generation.':';
+		} else {
+			$this->blog_prefix = $table_prefix.':';
+		}
+	}
+
+	/**
+	 * Reset generation prefix value for a single blog
+	 *
+	 * @param   int     $blog_id    Blog ID.
+	 *
+	 * @return  bool
+	 */
+	public function reset_generation($blog_id) {
+		$key = $this->generation_key($blog_id);
+
+		$this->m->delete($key, 0);
+		$this->generation[$blog_id] = microtime(true).rand(0, PHP_INT_MAX);
+
+		$result = $this->m->set($key, $this->generation[$blog_id], 0);
+
+		return $result;
+	}
+
+	/**
+	 * Get generation prefix key for a single blog
+	 *
+	 * @param   int     $blog_id    Blog ID.
+	 *
+	 * @return  string Generation key
+	 */
+	public function generation_key($blog_id) {
+		if (!defined('WP_OBJECT_CACHE_GENERATION_PREFIX')) {
+			define('WP_OBJECT_CACHE_GENERATION_PREFIX', 'generation:');
+		}
+		$key = WP_OBJECT_CACHE_GENERATION_PREFIX.$blog_id;
+		return $key;
+	}
+
+	/**
+	 * Get generation prefix for a single blog
+	 *
+	 * @param   int     $blog_id    Blog ID.
+	 *
+	 * @return  string Generation prefix
+	 */
+	public function get_generation($blog_id) {
+		if (isset($this->generation[$blog_id]) && $this->generation[$blog_id]) {
+			return $this->generation[$blog_id];
+		}
+
+		//Attempt to load the generation from memcache. If it's not present, then the entire
+		//cache for this blog has been invalidated, so reset to a new generation.
+		$key = $this->generation_key($blog_id);
+		$this->generation[$blog_id] = $this->m->get($key);
+		if ($this->generation[$blog_id] === false) {
+			$this->reset_generation($blog_id);
+		}
+		return $this->generation[$blog_id];
 	}
 }
