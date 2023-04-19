@@ -1,3 +1,10 @@
+#THIS BRANCH  IS UNMAINTAINED!
+
+Use this branch instead:
+
+https://github.com/humanmade/wordpress-pecl-memcached-object-cache
+
+
 [![Build Status](https://travis-ci.org/tollmanz/wordpress-memcached-backend.png?branch=master)](https://travis-ci.org/tollmanz/wordpress-memcached-backend)
 
 ## Overview
